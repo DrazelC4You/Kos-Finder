@@ -15,3 +15,4 @@ export const registerLimiter = rateLimit({
         message: 'Terlalu banyak percobaan registrasi dari IP ini, silakan coba lagi setelah 1 jam.'
     }
 });
+
