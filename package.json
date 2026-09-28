@@ -1,0 +1,28 @@
+{
+  "name": "kosfinder",
+  "version": "1.0.0",
+  "private": true,
+  "description": "KosFinder - Marketplace Pencarian dan Pengelolaan Kos",
+  "scripts": {
+    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "server:dev": "npm run --prefix server dev",
+    "client:dev": "npm run --prefix client dev",
+    "server:start": "npm run --prefix server start",
+    "client:build": "npm run --prefix client build",
+    "install:all": "npm install && npm run --prefix server install && npm run --prefix client install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "keywords": [
+    "kos",
+    "kosfinder",
+    "marketplace",
+    "react",
+    "express",
+    "prisma",
+    "postgresql"
+  ],
+  "author": "KosFinder Team",
+  "license": "ISC"
+}

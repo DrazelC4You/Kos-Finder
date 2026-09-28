@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Environment variables (JANGAN commit kredensial)
+.env
+.env.local
+.env.*.local
+
+# Uploaded user files (disimpan di disk lokal saat development)
+server/uploads/
+!server/uploads/.gitkeep
+
+# Logs
+*.log
+npm-debug.log*
+
+# Prisma
+server/prisma/migrations/dev.db*
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Archives kerja lokal
+*.zip
+
+# Arsip development lama (tidak ikut ke repo)
+legacy-v0.1/

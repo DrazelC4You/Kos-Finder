@@ -1,0 +1,296 @@
+// ===============================================
+// KOSFINDER DATABASE SCHEMA (PRISMA ORM)
+// Database: PostgreSQL
+// ===============================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------
+// ENUMS
+// -----------------------------------------------
+
+enum Role {
+  TENANT
+  OWNER
+  ADMIN
+}
+
+enum KosType {
+  CAMPUR
+  PUTRA
+  PUTRI
+}
+
+enum KosStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+  REJECTED
+}
+
+enum RoomStatus {
+  AVAILABLE
+  RESERVED
+  OCCUPIED
+  MAINTENANCE
+}
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  COMPLETED
+}
+
+enum ReportStatus {
+  PENDING
+  RESOLVED
+  DISMISSED
+}
+
+enum NotificationType {
+  BOOKING_NEW
+  BOOKING_APPROVED
+  BOOKING_REJECTED
+  MESSAGE_NEW
+  REVIEW_NEW
+  LISTING_VERIFIED
+  SYSTEM_INFO
+}
+
+// -----------------------------------------------
+// MODELS
+// -----------------------------------------------
+
+// 1. USER
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String    // Hashed with bcrypt
+  name          String
+  phone         String?
+  role          Role      @default(TENANT)
+  isVerified    Boolean   @default(false)
+  avatar        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relasi
+  profile       Profile?
+  kosListings   Kos[]          @relation("OwnerKos")
+  roomsRented   Room[]         @relation("TenantRooms")
+  favorites     Favorite[]
+  bookings      Booking[]      @relation("TenantBookings")
+  reviews       Review[]       @relation("TenantReviews")
+  notifications Notification[]
+  reportsFiled  Report[]       @relation("ReporterReports")
+
+  // Chat relasi
+  tenantConversations Conversation[] @relation("TenantConversations")
+  ownerConversations  Conversation[] @relation("OwnerConversations")
+  messagesSent        Message[]      @relation("SentMessages")
+
+  @@index([email])
+  @@index([role])
+}
+
+// 2. PROFILE
+model Profile {
+  id               String    @id @default(uuid())
+  userId           String    @unique
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio              String?
+  gender           String?   // Laki-laki / Perempuan
+  address          String?
+  occupation       String?   // Mahasiswa, Karyawan, dsb.
+  emergencyContact String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+// 3. KOS
+model Kos {
+  id             String      @id @default(uuid())
+  ownerId        String
+  owner          User        @relation("OwnerKos", fields: [ownerId], references: [id], onDelete: Cascade)
+  nama           String
+  deskripsi      String      @db.Text
+  alamat         String
+  kota           String
+  latitude       Float?
+  longitude      Float?
+  hargaBulanan   Decimal     @db.Decimal(12, 2)
+  type           KosType     @default(CAMPUR)
+  foto           String[]    // Array URL foto kos
+  fasilitas      String[]    // Array nama fasilitas (WiFi, AC, dll)
+  aturan         String?     @db.Text
+  rating         Float       @default(0.0)
+  jumlahReview   Int         @default(0)
+  totalKamar     Int         @default(0)
+  kamarTersedia  Int         @default(0)
+  status         KosStatus   @default(PENDING)
+  isVerified     Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  // Relasi
+  rooms         Room[]
+  favorites     Favorite[]
+  bookings      Booking[]
+  reviews       Review[]
+  conversations Conversation[]
+  reports       Report[]
+
+  @@index([kota])
+  @@index([status])
+  @@index([hargaBulanan])
+  @@index([type])
+  @@index([rating])
+}
+
+// 4. ROOM
+model Room {
+  id               String      @id @default(uuid())
+  kosId            String
+  kos              Kos         @relation(fields: [kosId], references: [id], onDelete: Cascade)
+  nomorKamar       String
+  harga            Decimal     @db.Decimal(12, 2)
+  status           RoomStatus  @default(AVAILABLE)
+  tenantId         String?
+  tenant           User?       @relation("TenantRooms", fields: [tenantId], references: [id], onDelete: SetNull)
+  tanggalMulaiSewa DateTime?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  // Relasi
+  bookings         Booking[]
+
+  @@index([kosId])
+  @@index([status])
+}
+
+// 5. FAVORITE
+model Favorite {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kosId     String
+  kos       Kos      @relation(fields: [kosId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, kosId])
+  @@index([userId])
+}
+
+// 6. BOOKING
+model Booking {
+  id           String        @id @default(uuid())
+  tenantId     String
+  tenant       User          @relation("TenantBookings", fields: [tenantId], references: [id], onDelete: Cascade)
+  kosId        String
+  kos          Kos           @relation(fields: [kosId], references: [id], onDelete: Cascade)
+  roomId       String
+  room         Room          @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  tanggalMulai DateTime
+  durasiBulan  Int           @default(1)
+  totalHarga   Decimal       @db.Decimal(12, 2)
+  status       BookingStatus @default(PENDING)
+  catatan      String?       @db.Text
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([tenantId])
+  @@index([kosId])
+  @@index([status])
+}
+
+// 7. CONVERSATION
+model Conversation {
+  id        String    @id @default(uuid())
+  tenantId  String
+  tenant    User      @relation("TenantConversations", fields: [tenantId], references: [id], onDelete: Cascade)
+  ownerId   String
+  owner     User      @relation("OwnerConversations", fields: [ownerId], references: [id], onDelete: Cascade)
+  kosId     String
+  kos       Kos       @relation(fields: [kosId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relasi
+  messages  Message[]
+
+  @@unique([tenantId, ownerId, kosId])
+  @@index([tenantId])
+  @@index([ownerId])
+}
+
+// 8. MESSAGE
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  message        String       @db.Text
+  isRead         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+}
+
+// 9. REVIEW
+model Review {
+  id        String   @id @default(uuid())
+  tenantId  String
+  tenant    User     @relation("TenantReviews", fields: [tenantId], references: [id], onDelete: Cascade)
+  kosId     String
+  kos       Kos      @relation(fields: [kosId], references: [id], onDelete: Cascade)
+  rating     Int       // 1 sampai 5
+  comment    String    @db.Text
+  ownerReply String?   @db.Text
+  replyAt    DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([tenantId, kosId])
+  @@index([kosId])
+}
+
+// 10. NOTIFICATION
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      NotificationType @default(SYSTEM_INFO)
+  isRead    Boolean          @default(false)
+  link      String?
+  createdAt DateTime         @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+}
+
+// 11. REPORT
+model Report {
+  id          String       @id @default(uuid())
+  reporterId  String
+  reporter    User         @relation("ReporterReports", fields: [reporterId], references: [id], onDelete: Cascade)
+  kosId       String
+  kos         Kos          @relation(fields: [kosId], references: [id], onDelete: Cascade)
+  reason      String       @db.Text
+  status      ReportStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+
+  @@index([kosId])
+  @@index([status])
+}
