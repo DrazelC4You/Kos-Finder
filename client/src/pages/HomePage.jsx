@@ -216,49 +216,49 @@ export default function HomePage() {
               nama: 'Yogyakarta',
               query: 'Yogyakarta',
               tagline: 'Kota Pelajar • UGM, UNY',
-              img: 'https://images.unsplash.com/photo-1596402184320-417e7178b2cd?w=400&auto=format&fit=crop&q=80'
+              img: '/cities/yogyakarta.png'
             },
             {
               nama: 'Bandung',
               query: 'Bandung',
               tagline: 'Kota Kembang • ITB, UNPAD',
-              img: 'https://images.unsplash.com/photo-1584810359583-96fc3448beaa?w=400&auto=format&fit=crop&q=80'
+              img: '/cities/bandung.png'
             },
             {
               nama: 'Jakarta Selatan',
               query: 'Jakarta Selatan',
               tagline: 'Pusat Bisnis • Tebet, Kuningan',
-              img: 'https://images.unsplash.com/photo-1555899434-94d1368aa7af?w=400&auto=format&fit=crop&q=80'
+              img: '/cities/jakarta.png'
             },
             {
               nama: 'Malang',
               query: 'Malang',
               tagline: 'Kota Sejuk • UB, UM, Polinema',
-              img: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=400&auto=format&fit=crop&q=80'
+              img: '/cities/malang.png'
             },
             {
               nama: 'Surabaya',
               query: 'Surabaya',
               tagline: 'Kota Pahlawan • UNAIR, ITS',
-              img: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=400&auto=format&fit=crop&q=80'
+              img: '/cities/surabaya.png'
             },
             {
               nama: 'Semarang',
               query: 'Semarang',
               tagline: 'Kota Atlas • UNDIP, UNNES',
-              img: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&auto=format&fit=crop&q=80'
+              img: '/cities/semarang.png'
             },
             {
               nama: 'Bali (Denpasar)',
               query: 'Denpasar',
               tagline: 'Pulau Dewata • Udayana, Renon',
-              img: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400&auto=format&fit=crop&q=80'
+              img: '/cities/bali.png'
             },
             {
               nama: 'Purwokerto',
               query: 'Purwokerto',
               tagline: 'Kota Satria • UNSOED, UMP',
-              img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&auto=format&fit=crop&q=80'
+              img: '/cities/purwokerto.png'
             }
           ].map((item, idx) => (
             <Link
