@@ -460,49 +460,49 @@ export default function HomePage() {
               nama: 'Yogyakarta',
               query: 'Yogyakarta',
               tagline: 'Kota Pelajar • UGM, UNY',
-              img: '/cities/yogyakarta.png'
+              img: '/cities/yogyakarta.jpg'
             },
             {
               nama: 'Bandung',
               query: 'Bandung',
               tagline: 'Kota Kembang • ITB, UNPAD',
-              img: '/cities/bandung.png'
+              img: '/cities/bandung.jpg'
             },
             {
               nama: 'Jakarta Selatan',
               query: 'Jakarta Selatan',
               tagline: 'Pusat Bisnis • Tebet, Kuningan',
-              img: '/cities/jakarta.png'
+              img: '/cities/jakarta.jpg'
             },
             {
               nama: 'Malang',
               query: 'Malang',
               tagline: 'Kota Sejuk • UB, UM, Polinema',
-              img: '/cities/malang.png'
+              img: '/cities/malang.jpg'
             },
             {
               nama: 'Surabaya',
               query: 'Surabaya',
               tagline: 'Kota Pahlawan • UNAIR, ITS',
-              img: '/cities/surabaya.png'
+              img: '/cities/surabaya.jpg'
             },
             {
               nama: 'Semarang',
               query: 'Semarang',
               tagline: 'Kota Atlas • UNDIP, UNNES',
-              img: '/cities/semarang.png'
+              img: '/cities/semarang.jpg'
             },
             {
               nama: 'Bali (Denpasar)',
               query: 'Denpasar',
               tagline: 'Pulau Dewata • Udayana, Renon',
-              img: '/cities/bali.png'
+              img: '/cities/bali.jpg'
             },
             {
               nama: 'Purwokerto',
               query: 'Purwokerto',
               tagline: 'Kota Satria • UNSOED, UMP',
-              img: '/cities/purwokerto.png'
+              img: '/cities/purwokerto.jpg'
             }
           ].map((item, idx) => (
             <Link
@@ -526,6 +526,9 @@ export default function HomePage() {
             </Link>
           ))}
         </div>
+        <p className="text-[10px] text-slate-400 mt-3 text-right">
+          Foto landmark kota: Wikimedia Commons (lisensi Creative Commons)
+        </p>
       </section>
 
       {/* 2. KOS POPULER SECTION */}
