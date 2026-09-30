@@ -13,6 +13,7 @@ export const seedUsers = [
     phone: '081122334455',
     role: 'ADMIN',
     isVerified: true,
+    emailVerified: true,
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     profile: {
       bio: 'Administrator resmi platform KosFinder',
@@ -31,6 +32,7 @@ export const seedUsers = [
     phone: '081234567890',
     role: 'OWNER',
     isVerified: true,
+    emailVerified: true,
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
     profile: {
       bio: 'Pemilik Kos Harmoni dan Graha Asri di Purwokerto sejak 2018',
@@ -49,6 +51,7 @@ export const seedUsers = [
     phone: '081377889900',
     role: 'OWNER',
     isVerified: true,
+    emailVerified: true,
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
     profile: {
       bio: 'Mengelola kos putri eksklusif dengan lingkungan aman dan kondusif',
@@ -67,6 +70,7 @@ export const seedUsers = [
     phone: '085611223344',
     role: 'TENANT',
     isVerified: true,
+    emailVerified: true,
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
     profile: {
       bio: 'Mahasiswa Teknik Informatika tingkat akhir',
@@ -85,6 +89,7 @@ export const seedUsers = [
     phone: '087811223344',
     role: 'TENANT',
     isVerified: true,
+    emailVerified: true,
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
     profile: {
       bio: 'Mahasiswi Kedokteran Unsoed',

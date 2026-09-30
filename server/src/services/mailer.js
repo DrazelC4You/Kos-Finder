@@ -43,3 +43,21 @@ export const sendPasswordResetEmail = async (toEmail, resetUrl) => {
   console.log('----------------------------------------------------------');
   return { delivered: true, via: 'console' };
 };
+
+export const sendVerificationEmail = async (toEmail, verifyUrl) => {
+  const subject = 'Verifikasi Email Akun Pemilik Kos KosFinder';
+  const text = `Halo,\n\nTerima kasih telah mendaftar sebagai Pemilik Kos di KosFinder.\nKlik tautan berikut untuk memverifikasi email Anda (berlaku 24 jam):\n\n${verifyUrl}\n\nSetelah terverifikasi, Anda dapat mulai menambahkan listing kos.\nAbaikan email ini jika Anda tidak merasa mendaftar.`;
+
+  if (transporter) {
+    await transporter.sendMail({ from: FROM, to: toEmail, subject, text });
+    return { delivered: true, via: 'smtp' };
+  }
+
+  console.log('----------------------------------------------------------');
+  console.log('📧 [MAILER - DEV MODE] SMTP belum dikonfigurasi.');
+  console.log(`   Kepada : ${toEmail}`);
+  console.log(`   Subjek : ${subject}`);
+  console.log(`   Link   : ${verifyUrl}`);
+  console.log('----------------------------------------------------------');
+  return { delivered: true, via: 'console' };
+};

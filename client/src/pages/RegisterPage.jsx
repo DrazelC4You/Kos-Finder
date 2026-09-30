@@ -30,7 +30,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await register({
+      const userData = await register({
         name,
         email,
         phone,
@@ -38,7 +38,7 @@ export default function RegisterPage() {
         confirmPassword,
         role
       });
-      navigate('/', { replace: true });
+      navigate(userData.role === 'OWNER' ? '/owner/dashboard' : '/', { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Pendaftaran gagal. Silakan periksa kembali data Anda.');
     } finally {

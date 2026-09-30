@@ -79,6 +79,7 @@ model User {
   phone         String?
   role          Role      @default(TENANT)
   isVerified    Boolean   @default(false)
+  emailVerified Boolean   @default(false)
   avatar        String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

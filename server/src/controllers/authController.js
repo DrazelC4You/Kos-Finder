@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import db from '../services/db.js';
 import { signToken } from '../utils/jwt.js';
-import { sendPasswordResetEmail } from '../services/mailer.js';
+import { sendPasswordResetEmail, sendVerificationEmail } from '../services/mailer.js';
 import { successResponse, errorResponse } from '../utils/response.js';
 
 /**
@@ -58,6 +58,7 @@ export const register = async (req, res) => {
       phone: phone ? phone.trim() : null,
       role: selectedRole,
       isVerified: selectedRole === 'TENANT', // Tenant langsung aktif, Owner bisa diverifikasi
+      emailVerified: selectedRole === 'TENANT', // Owner wajib verifikasi email dulu (anti-troll)
       avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`,
       profile: {
         bio: '',
@@ -65,6 +66,16 @@ export const register = async (req, res) => {
         occupation: selectedRole === 'TENANT' ? 'Pencari Kos' : 'Pemilik Properti Kos'
       }
     });
+
+    // 4b. Owner wajib verifikasi email sebelum bisa menambahkan kos
+    if (selectedRole === 'OWNER') {
+      const verification = await db.createEmailVerificationToken(newUser.id);
+      if (verification) {
+        const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+        const verifyUrl = `${clientUrl}/verify-email?token=${verification.token}`;
+        await sendVerificationEmail(newUser.email, verifyUrl);
+      }
+    }
 
     // 5. Generate JWT Token
     const token = signToken({
@@ -76,10 +87,14 @@ export const register = async (req, res) => {
 
     const { password: _, ...safeUser } = newUser;
 
+    const successMessage = selectedRole === 'OWNER'
+      ? 'Registrasi berhasil! Silakan cek email Anda dan klik tautan verifikasi sebelum mulai menambahkan kos.'
+      : 'Registrasi berhasil! Selamat datang di KosFinder sebagai Pencari Kos.';
+
     return successResponse(res, {
       user: safeUser,
       token
-    }, `Registrasi berhasil! Selamat datang di KosFinder sebagai ${selectedRole === 'OWNER' ? 'Pemilik Kos' : 'Pencari Kos'}.`, 201);
+    }, successMessage, 201);
   } catch (err) {
     console.error('Register error:', err);
     return errorResponse(res, 'Terjadi kegagalan saat memproses pendaftaran akun.', 500);
@@ -207,6 +222,59 @@ export const resetPassword = async (req, res) => {
   } catch (err) {
     console.error('Reset password error:', err);
     return errorResponse(res, 'Terjadi kesalahan saat memperbarui password.', 500);
+  }
+};
+
+/**
+ * VERIFY EMAIL CONTROLLER
+ * POST /api/auth/verify-email
+ * Menandai email user sebagai terverifikasi berdasarkan token dari email.
+ */
+export const verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return errorResponse(res, 'Token verifikasi wajib diisi.', 400);
+    }
+
+    const user = await db.markEmailVerified(token);
+    if (!user) {
+      return errorResponse(res, 'Token verifikasi tidak valid atau sudah kedaluwarsa. Silakan minta tautan verifikasi baru.', 400);
+    }
+
+    const { password: _, ...safeUser } = user;
+    return successResponse(res, { user: safeUser }, 'Email berhasil diverifikasi! Sekarang Anda dapat menambahkan listing kos.');
+  } catch (err) {
+    console.error('Verify email error:', err);
+    return errorResponse(res, 'Terjadi kesalahan saat memverifikasi email.', 500);
+  }
+};
+
+/**
+ * RESEND VERIFICATION CONTROLLER
+ * POST /api/auth/resend-verification
+ * Mengirim ulang email verifikasi untuk user yang sedang login.
+ */
+export const resendVerification = async (req, res) => {
+  try {
+    if (req.user.emailVerified) {
+      return errorResponse(res, 'Email Anda sudah terverifikasi.', 400);
+    }
+
+    const verification = await db.createEmailVerificationToken(req.user.id);
+    if (!verification) {
+      return errorResponse(res, 'Pengguna tidak ditemukan.', 404);
+    }
+
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    const verifyUrl = `${clientUrl}/verify-email?token=${verification.token}`;
+    await sendVerificationEmail(req.user.email, verifyUrl);
+
+    return successResponse(res, null, 'Tautan verifikasi baru telah dikirim ke email Anda.');
+  } catch (err) {
+    console.error('Resend verification error:', err);
+    return errorResponse(res, 'Terjadi kesalahan saat mengirim ulang email verifikasi.', 500);
   }
 };
 

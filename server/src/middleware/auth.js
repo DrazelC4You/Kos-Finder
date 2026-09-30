@@ -56,3 +56,24 @@ export const authorize = (...roles) => {
     next();
   };
 };
+
+/**
+ * Email Verification Gate
+ * Memblokir aksi mutasi (tambah/ubah data) bagi user yang belum
+ * memverifikasi emailnya. Mencegah akun troll sekali pakai.
+ */
+export const requireVerifiedEmail = (req, res, next) => {
+  if (!req.user) {
+    return errorResponse(res, 'Otentikasi diperlukan terlebih dahulu.', 401);
+  }
+
+  if (!req.user.emailVerified) {
+    return errorResponse(
+      res,
+      'Email Anda belum diverifikasi. Silakan cek email dan klik tautan verifikasi sebelum mengelola data kos.',
+      403
+    );
+  }
+
+  next();
+};

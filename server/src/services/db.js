@@ -36,6 +36,7 @@ class MemoryDataStore {
       createdAt: new Date(),
       updatedAt: new Date(),
       isVerified: false,
+      emailVerified: false,
       role: userData.role || 'TENANT',
       ...userData,
       profile: userData.profile || {}
@@ -2189,6 +2190,7 @@ let isPostgresAvailable = null;
 // Token reset password (ephemeral, berlaku 1 jam). Disimpan di memori
 // agar alur reset tetap berfungsi pada mode fallback maupun PostgreSQL.
 const passwordResetTokens = new Map();
+const emailVerificationTokens = new Map();
 
 /**
  * Cek status database saat runtime
@@ -2536,6 +2538,57 @@ export const db = {
     }
     passwordResetTokens.delete(token);
     return true;
+  },
+
+  // ================= EMAIL VERIFICATION (Owner Anti-Troll) =================
+  async createEmailVerificationToken(userId) {
+    const { isPostgres } = await getDatabaseStatus();
+    let user;
+    if (isPostgres) {
+      user = await prisma.user.findUnique({ where: { id: userId } });
+    } else {
+      user = memoryStore.users.find(u => u.id === userId);
+    }
+    if (!user) return null;
+
+    const token = crypto.randomBytes(32).toString('hex');
+    emailVerificationTokens.set(token, {
+      userId: user.id,
+      email: user.email,
+      expiresAt: Date.now() + 24 * 60 * 60 * 1000 // 24 jam
+    });
+    return { token, user };
+  },
+
+  async verifyEmailToken(token) {
+    const record = emailVerificationTokens.get(token);
+    if (!record) return null;
+    if (Date.now() > record.expiresAt) {
+      emailVerificationTokens.delete(token);
+      return null;
+    }
+    return record;
+  },
+
+  async markEmailVerified(token) {
+    const record = await this.verifyEmailToken(token);
+    if (!record) return null;
+
+    const { isPostgres } = await getDatabaseStatus();
+    let user;
+    if (isPostgres) {
+      user = await prisma.user.update({
+        where: { id: record.userId },
+        data: { emailVerified: true },
+        include: { profile: true }
+      });
+    } else {
+      user = memoryStore.users.find(u => u.id === record.userId);
+      if (!user) return null;
+      user.emailVerified = true;
+    }
+    emailVerificationTokens.delete(token);
+    return user;
   },
 
   async cancelBooking(bookingId, tenantId) {

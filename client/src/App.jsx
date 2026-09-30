@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx';
 import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
+import VerifyEmailPage from './pages/VerifyEmailPage.jsx';
 import AboutPage from './pages/AboutPage.jsx';
 import OwnerLandingPage from './pages/OwnerLandingPage.jsx';
 import TenantDashboardPage from './pages/TenantDashboardPage.jsx';
@@ -157,6 +158,7 @@ export default function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
             <Route path="/tentang" element={<AboutPage />} />
             <Route path="/untuk-pemilik" element={<OwnerLandingPage />} />
           </Routes>

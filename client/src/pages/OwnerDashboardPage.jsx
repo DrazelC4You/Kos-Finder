@@ -6,7 +6,7 @@ import {
   Key, Loader2, Save, X, Eye,
   Star, CornerDownRight, MessageCircle, CreditCard, Wallet,
   TrendingUp, CircleX, BadgeCheck,
-  FileText, Receipt, ImagePlus, Link2
+  FileText, Receipt, ImagePlus, Link2, MailWarning
 } from 'lucide-react';
 import api from '../services/api.js';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -70,6 +70,20 @@ export default function OwnerDashboardPage() {
   const triggerToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
     setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3500);
+  };
+
+  // Email Verification (anti-troll gate untuk owner baru)
+  const [resendingVerification, setResendingVerification] = useState(false);
+  const handleResendVerification = async () => {
+    setResendingVerification(true);
+    try {
+      const res = await api.post('/auth/resend-verification');
+      triggerToast(res.data.message || 'Tautan verifikasi baru telah dikirim ke email Anda.');
+    } catch (err) {
+      triggerToast(err.response?.data?.message || 'Gagal mengirim ulang email verifikasi.', 'error');
+    } finally {
+      setResendingVerification(false);
+    }
   };
 
   // Modal State: Add/Edit Kos
@@ -549,6 +563,30 @@ export default function OwnerDashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Email Verification Banner (anti-troll gate) */}
+      {isOwner && user && !user.emailVerified && (
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center gap-4 p-5 rounded-2xl bg-amber-50 border border-amber-200">
+          <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center flex-shrink-0">
+            <MailWarning className="w-5 h-5" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-sm font-bold text-amber-800">Email Anda belum diverifikasi</h3>
+            <p className="text-xs text-amber-700 mt-1">
+              Demi keamanan platform, Anda belum bisa menambah atau mengubah data kos.
+              Silakan cek email <span className="font-semibold">{user.email}</span> dan klik tautan verifikasi yang kami kirimkan.
+            </p>
+          </div>
+          <button
+            onClick={handleResendVerification}
+            disabled={resendingVerification}
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {resendingVerification ? <Loader2 className="w-4 h-4 animate-spin" /> : <MailWarning className="w-4 h-4" />}
+            <span>{resendingVerification ? 'Mengirim...' : 'Kirim Ulang Email Verifikasi'}</span>
+          </button>
+        </div>
+      )}
 
       {/* Stats Overview Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">

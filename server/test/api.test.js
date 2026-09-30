@@ -296,6 +296,79 @@ test('owner CRUD listing kos end-to-end', async () => {
 });
 
 // ---------------------------------------------------------------
+// EMAIL VERIFICATION (OWNER ANTI-TROLL GATE)
+// ---------------------------------------------------------------
+test('owner baru wajib verifikasi email sebelum bisa membuat listing', async () => {
+  // 1. Register owner baru -> emailVerified false
+  const regRes = await request(app).post('/api/auth/register').send({
+    name: 'Owner Belum Verifikasi',
+    email: `owner.unverified.${uniq}@test.dev`,
+    password: 'TestPass123',
+    confirmPassword: 'TestPass123',
+    role: 'OWNER'
+  });
+  assert.ok([200, 201].includes(regRes.status));
+  assert.equal(regRes.body.data.user.role, 'OWNER');
+  assert.equal(regRes.body.data.user.emailVerified, false);
+  const unverifiedToken = regRes.body.data.token;
+  const unverifiedId = regRes.body.data.user.id;
+
+  // 2. Belum verifikasi -> buat listing ditolak 403
+  const blockedRes = await request(app)
+    .post('/api/owner/kos')
+    .set('Authorization', `Bearer ${unverifiedToken}`)
+    .send({ nama: 'Kos Troll', alamat: 'Jl. Troll', kota: 'Purwokerto', hargaBulanan: 100000 });
+  assert.equal(blockedRes.status, 403);
+  assert.equal(blockedRes.body.success, false);
+
+  // 3. Token verifikasi palsu -> 400
+  const bogusRes = await request(app)
+    .post('/api/auth/verify-email')
+    .send({ token: 'token-palsu' });
+  assert.equal(bogusRes.status, 400);
+
+  // 4. Kirim ulang email verifikasi (endpoint terproteksi) -> 200
+  const resendRes = await request(app)
+    .post('/api/auth/resend-verification')
+    .set('Authorization', `Bearer ${unverifiedToken}`);
+  assert.equal(resendRes.status, 200);
+
+  // 5. Simulasikan klik link di email: buat token via db lalu verifikasi -> 200
+  const { default: db } = await import('../src/services/db.js');
+  const verification = await db.createEmailVerificationToken(unverifiedId);
+  assert.ok(verification && verification.token);
+  const verifyRes = await request(app)
+    .post('/api/auth/verify-email')
+    .send({ token: verification.token });
+  assert.equal(verifyRes.status, 200, JSON.stringify(verifyRes.body));
+  assert.equal(verifyRes.body.data.user.emailVerified, true);
+
+  // 6. Setelah verifikasi -> buat listing berhasil (token JWT lama tetap dipakai)
+  const createRes = await request(app)
+    .post('/api/owner/kos')
+    .set('Authorization', `Bearer ${unverifiedToken}`)
+    .send({
+      nama: 'Kos Owner Terverifikasi',
+      alamat: 'Jl. Sah No. 1',
+      kota: 'Purwokerto',
+      hargaBulanan: 500000,
+      type: 'CAMPUR'
+    });
+  assert.ok([200, 201].includes(createRes.status), JSON.stringify(createRes.body));
+
+  // Bersihkan listing uji
+  await request(app)
+    .delete(`/api/owner/kos/${createRes.body.data.id}`)
+    .set('Authorization', `Bearer ${unverifiedToken}`);
+
+  // 7. Resend setelah terverifikasi -> 400
+  const resendAgain = await request(app)
+    .post('/api/auth/resend-verification')
+    .set('Authorization', `Bearer ${unverifiedToken}`);
+  assert.equal(resendAgain.status, 400);
+});
+
+// ---------------------------------------------------------------
 // FAVORITES (TENANT)
 // ---------------------------------------------------------------
 test('tenant dapat menambah, melihat, dan menghapus favorit', async () => {

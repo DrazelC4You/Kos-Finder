@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticate, authorize } from '../middleware/auth.js';
+import { authenticate, authorize, requireVerifiedEmail } from '../middleware/auth.js';
 import ownerController from '../controllers/ownerController.js';
 
 const router = Router();
@@ -11,16 +11,16 @@ router.use(authorize('OWNER', 'ADMIN'));
 // 1. Dashboard Overview Stats & Properties
 router.get('/dashboard', ownerController.getDashboard);
 
-// 2. Kos Listing Management
+// 2. Kos Listing Management (mutasi wajib email terverifikasi)
 router.get('/kos', ownerController.getKosList);
-router.post('/kos', ownerController.createKos);
-router.put('/kos/:id', ownerController.updateKos);
-router.delete('/kos/:id', ownerController.deleteKos);
+router.post('/kos', requireVerifiedEmail, ownerController.createKos);
+router.put('/kos/:id', requireVerifiedEmail, ownerController.updateKos);
+router.delete('/kos/:id', requireVerifiedEmail, ownerController.deleteKos);
 
 // 3. Room Management & Availability Schedule
-router.post('/kos/:kosId/rooms', ownerController.addRoom);
-router.put('/rooms/:roomId', ownerController.updateRoom);
-router.delete('/rooms/:roomId', ownerController.deleteRoom);
+router.post('/kos/:kosId/rooms', requireVerifiedEmail, ownerController.addRoom);
+router.put('/rooms/:roomId', requireVerifiedEmail, ownerController.updateRoom);
+router.delete('/rooms/:roomId', requireVerifiedEmail, ownerController.deleteRoom);
 router.get('/kos/:kosId/availability', ownerController.getRoomSchedule);
 
 // 4. Booking Requests & Approval Management
