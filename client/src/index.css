@@ -11,3 +11,70 @@
     @apply font-heading font-bold text-slate-900;
   }
 }
+
+@layer utilities {
+  /* === Horizontal slide — "Next" direction (left-ward) === */
+  @keyframes headlineInRight {
+    0%   { opacity: 0; transform: translateX(24px); }
+    100% { opacity: 1; transform: translateX(0);    }
+  }
+  @keyframes headlineOutLeft {
+    0%   { opacity: 1; transform: translateX(0);     }
+    100% { opacity: 0; transform: translateX(-24px); }
+  }
+
+  /* === Horizontal slide — "Prev" direction (right-ward) === */
+  @keyframes headlineInLeft {
+    0%   { opacity: 0; transform: translateX(-24px); }
+    100% { opacity: 1; transform: translateX(0);     }
+  }
+  @keyframes headlineOutRight {
+    0%   { opacity: 1; transform: translateX(0);    }
+    100% { opacity: 0; transform: translateX(24px); }
+  }
+
+  .animate-headline-in-right {
+    animation: headlineInRight 450ms 120ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .animate-headline-out-left {
+    animation: headlineOutLeft 250ms cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+  .animate-headline-in-left {
+    animation: headlineInLeft 450ms 120ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .animate-headline-out-right {
+    animation: headlineOutRight 250ms cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+
+  /* === Dropdown Animation === */
+  @keyframes dropdownIn {
+    0% {
+      opacity: 0;
+      transform: translateY(-4px) scale(0.98);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .animate-dropdown {
+    animation: dropdownIn 150ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    transform-origin: top left;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-headline-in-right,
+    .animate-headline-in-left {
+      animation: headlineInRight 180ms 0ms linear both;
+    }
+    .animate-headline-out-left,
+    .animate-headline-out-right {
+      animation: headlineOutLeft 120ms linear forwards;
+    }
+    .animate-dropdown {
+      animation: none;
+    }
+  }
+}
+
