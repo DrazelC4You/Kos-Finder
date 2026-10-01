@@ -3,7 +3,7 @@ import { seedUsers, seedKos, seedBookings, seedReviews } from './seedData.js';
 
 const prisma = new PrismaClient();
 
-async function main() {
+export async function runSeed() {
   console.log('🌱 Memulai proses Seeding database KosFinder...');
 
   // 1. Bersihkan database terlebih dahulu
@@ -71,11 +71,14 @@ async function main() {
   console.log('✨ SEEDING DATABASE SELESAI DENGAN SUKSES! ✨');
 }
 
-main()
-  .catch((e) => {
-    console.error('❌ Gagal saat seeding:', e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+// Hanya jalankan sebagai script CLI (node prisma/seed.js), bukan saat di-import
+if (process.argv[1] && process.argv[1].endsWith('seed.js')) {
+  runSeed()
+    .catch((e) => {
+      console.error('❌ Gagal saat seeding:', e);
+      process.exit(1);
+    })
+    .finally(async () => {
+      await prisma.$disconnect();
+    });
+}

@@ -1,0 +1,38 @@
+# Render Blueprint — deploy KosFinder sebagai single web service + PostgreSQL.
+# Cara pakai: Dashboard Render → New → Blueprint → hubungkan repo ini.
+# Setelah deploy, isi 3 env var yang sync: false (CLIENT_URL, CORS_ORIGIN,
+# TURNSTILE_SECRET_KEY) sesuai URL aplikasi dan dashboard Cloudflare.
+
+services:
+  - type: web
+    name: kosfinder
+    runtime: node
+    plan: free
+    buildCommand: npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: kosfinder-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: CLIENT_URL
+        sync: false # isi dengan URL aplikasi, mis. https://kosfinder.onrender.com
+      - key: CORS_ORIGIN
+        sync: false # sama dengan CLIENT_URL
+      - key: TURNSTILE_SECRET_KEY
+        sync: false # secret asli dari dashboard Cloudflare Turnstile
+      - key: STORAGE_DRIVER
+        value: local
+      - key: UPLOAD_DIR
+        value: uploads
+
+databases:
+  - name: kosfinder-db
+    plan: free

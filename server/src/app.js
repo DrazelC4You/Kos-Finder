@@ -3,9 +3,13 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import routes from './routes/index.js';
 import storage from './services/storage.js';
 import { notFoundHandler, globalErrorHandler } from './middleware/errorHandler.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 
@@ -54,6 +58,18 @@ app.use('/api', apiLimiter);
 
 // API Base Routes
 app.use('/api', routes);
+
+// Static frontend (produksi): sajikan hasil build React dari client/dist
+// beserta fallback SPA agar rute sisi-client (/cari, /kos/:id, dll) tetap
+// mengembalikan index.html. Request /api dan /uploads tidak diganggu.
+if (process.env.NODE_ENV === 'production') {
+    const clientDist = path.resolve(__dirname, '../../client/dist');
+    app.use(express.static(clientDist));
+    app.get('*', (req, res, next) => {
+        if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) return next();
+        res.sendFile(path.join(clientDist, 'index.html'));
+    });
+}
 
 // 404 & Error Handlers
 app.use(notFoundHandler);
