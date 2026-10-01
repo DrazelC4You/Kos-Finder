@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api.js';
 import KosCard from '../components/KosCard.jsx';
@@ -7,8 +7,14 @@ import SearchDropdown from '../components/SearchDropdown.jsx';
 import {
   Search, MapPin, Banknote, Home, CheckCircle2, Shield,
   ArrowRight, Users, Sparkles, ChevronDown, ChevronUp,
-  GraduationCap, Building2, KeyRound, CalendarCheck, UserCheck
+  GraduationCap, Building2, KeyRound, CalendarCheck, UserCheck,
+  Compass, Loader2, X, AlertCircle, MapPinOff
 } from 'lucide-react';
+import {
+  DEFAULT_CAMPUS_PRESETS,
+  sortRecommendationsByLocation,
+  requestUserLocation
+} from '../utils/geolocation.js';
 
 const headlines = [
   {
@@ -216,6 +222,46 @@ export default function HomePage() {
   // FAQ toggle state
   const [openFaq, setOpenFaq] = useState(null);
 
+  // Campus & Location recommendations state
+  const [campusList, setCampusList] = useState(DEFAULT_CAMPUS_PRESETS);
+  const [userCoords, setUserCoords] = useState(null);
+  const [locationStatus, setLocationStatus] = useState('idle'); // 'idle' | 'loading' | 'active' | 'error'
+  const [locationError, setLocationError] = useState('');
+
+  // Handle requesting user location (only triggered on user interaction)
+  const handleRequestLocation = async () => {
+    setLocationStatus('loading');
+    setLocationError('');
+    try {
+      const coords = await requestUserLocation();
+      setUserCoords(coords);
+      setLocationStatus('active');
+    } catch (err) {
+      setLocationStatus('error');
+      setLocationError(err.message || 'Gagal mendeteksi lokasi.');
+    }
+  };
+
+  // Reset to default popular campus view
+  const handleResetLocation = () => {
+    setUserCoords(null);
+    setLocationStatus('idle');
+    setLocationError('');
+  };
+
+  // Calculate distance & sort recommendations when user coordinates are available
+  const { nearby, isOutsideCoverage } = useMemo(() => {
+    return sortRecommendationsByLocation(campusList, userCoords, 150);
+  }, [campusList, userCoords]);
+
+  // Display top 4 nearest campuses if location active & within coverage, else default 4
+  const displayedCampuses = useMemo(() => {
+    if (locationStatus === 'active' && !isOutsideCoverage && nearby.length > 0) {
+      return nearby.slice(0, 4);
+    }
+    return campusList.slice(0, 4);
+  }, [locationStatus, isOutsideCoverage, nearby, campusList]);
+
   useEffect(() => {
     // Fetch Kos Populer
     api.get('/kos?sort=popular&limit=3')
@@ -236,6 +282,34 @@ export default function HomePage() {
       })
       .catch(err => console.error('Error loading latest kos:', err))
       .finally(() => setLoadingLatest(false));
+
+    // Fetch and sync campus landmarks from backend if available
+    api.get('/kos/landmarks')
+      .then((res) => {
+        if (res.data?.success && Array.isArray(res.data.data) && res.data.data.length > 0) {
+          const backendLandmarks = res.data.data;
+          setCampusList((prev) => {
+            const merged = [...prev];
+            backendLandmarks.forEach((b) => {
+              const existingIdx = merged.findIndex((m) => m.id === b.id);
+              if (existingIdx >= 0) {
+                merged[existingIdx] = {
+                  ...merged[existingIdx],
+                  latitude: b.lat ?? b.latitude ?? merged[existingIdx].latitude,
+                  longitude: b.lng ?? b.longitude ?? merged[existingIdx].longitude,
+                  name: merged[existingIdx].name || b.nama,
+                  full: merged[existingIdx].full || b.nama,
+                  area: merged[existingIdx].area || b.area
+                };
+              }
+            });
+            return merged;
+          });
+        }
+      })
+      .catch(() => {
+        // Keep DEFAULT_CAMPUS_PRESETS
+      });
   }, []);
 
   const handleHeroSearch = (e) => {
@@ -491,80 +565,167 @@ export default function HomePage() {
       {/* 2.5 CAMPUS & LANDMARKS SHOWCASE (PHASE 13) */}
       <section className="bg-gradient-to-b from-slate-900 to-slate-950 py-12 text-white">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
             <div>
-              <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider block mb-1">
+              <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider block mb-1.5">
                 Lokasi Favorit Mahasiswa
               </span>
-              <h2 className="text-2xl sm:text-3xl font-bold font-heading">
-                Cari Kos Dekat Kampusmu 🎓
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-400 mt-1">
-                Akses cepat ke kos-kosan strategis di sekitar universitas terkemuka di Purwokerto
+              <div className="flex items-center gap-2.5">
+                <h2 className="text-2xl sm:text-3xl font-extrabold font-heading text-white tracking-tight">
+                  Cari Kos Dekat <span className="text-emerald-400">Kampusmu</span>
+                </h2>
+                <div
+                  className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 text-emerald-400"
+                  aria-hidden="true"
+                >
+                  <GraduationCap className="w-4 h-4" />
+                </div>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-300 mt-2 max-w-xl">
+                {locationStatus === 'active' && !isOutsideCoverage
+                  ? 'Akses cepat ke kos-kosan strategis di sekitar universitas terdekat dari lokasi Anda.'
+                  : 'Akses cepat ke kos-kosan strategis di sekitar universitas terkemuka di Indonesia.'}
               </p>
             </div>
-            <Link
-              to="/cari"
-              className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 hover:underline"
-            >
-              <span>Jelajahi Semua Area</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Location Status / Action Pill */}
+              {locationStatus === 'loading' ? (
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-950/70 border border-emerald-500/30 text-xs font-medium text-emerald-300 shadow-sm">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" />
+                  <span>Mencari lokasi Anda...</span>
+                </div>
+              ) : locationStatus === 'active' ? (
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-950/70 border border-emerald-500/40 text-xs font-medium text-emerald-300 shadow-sm">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  <span>Menggunakan lokasi Anda</span>
+                  <button
+                    onClick={handleResetLocation}
+                    title="Reset ke rekomendasi default"
+                    className="text-slate-400 hover:text-white ml-1 p-0.5 rounded transition-colors"
+                    aria-label="Reset lokasi"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleRequestLocation}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-medium text-emerald-300 hover:text-emerald-200 border border-white/10 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
+                >
+                  <Compass className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Gunakan Lokasi Saya</span>
+                </button>
+              )}
+
+              {/* Jelajahi Semua Area link */}
+              <Link
+                to="/cari"
+                className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 hover:underline transition-colors py-1.5"
+              >
+                <span>Jelajahi Semua Area</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              {
-                id: 'unsoed',
-                name: 'UNSOED Purwokerto',
-                full: 'Universitas Jenderal Soedirman',
-                area: 'Grendeng & Karangwangkal',
-                bg: 'from-emerald-900/60 to-emerald-950/90 border-emerald-500/30 hover:border-emerald-400'
-              },
-              {
-                id: 'ump',
-                name: 'UMP Purwokerto',
-                full: 'Univ. Muhammadiyah Purwokerto',
-                area: 'Dukuhwaluh & Kembaran',
-                bg: 'from-blue-900/60 to-blue-950/90 border-blue-500/30 hover:border-blue-400'
-              },
-              {
-                id: 'telkom',
-                name: 'Telkom University',
-                full: 'Telkom University Purwokerto',
-                area: 'Jl. D.I. Panjaitan',
-                bg: 'from-rose-900/60 to-rose-950/90 border-rose-500/30 hover:border-rose-400'
-              },
-              {
-                id: 'uinsaizu',
-                name: 'UIN Saizu Purwokerto',
-                full: 'UIN Prof. K.H. Saifuddin Zuhri',
-                area: 'Karangkobar, Purwokerto Barat',
-                bg: 'from-teal-900/60 to-teal-950/90 border-teal-500/30 hover:border-teal-400'
-              }
-            ].map((c) => (
-              <Link
-                key={c.id}
-                to={`/cari?campus=${c.id}`}
-                className={`p-5 rounded-2xl bg-gradient-to-br ${c.bg} border transition-all duration-200 hover:-translate-y-1 hover:shadow-xl group block`}
-              >
-                <div className="w-10 h-10 rounded-xl bg-white/10 text-white flex items-center justify-center mb-3 backdrop-blur-sm group-hover:scale-110 transition-transform">
-                  <GraduationCap className="w-5 h-5 text-emerald-300" />
-                </div>
-                <h3 className="font-heading font-bold text-base text-white group-hover:text-emerald-300 transition-colors">
-                  {c.name}
-                </h3>
-                <p className="text-[11px] text-slate-300 mt-0.5">{c.full}</p>
-                <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-emerald-300 font-semibold">
-                  <span className="text-slate-400 font-normal text-[11px]">{c.area}</span>
-                  <span className="group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
-                    <span>Lihat Kos</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
+          {/* Location Error / Denied Notice */}
+          {locationStatus === 'error' && (
+            <div className="mb-6 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs text-amber-200 flex flex-wrap items-center justify-between gap-3 animate-dropdown">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                <span>{locationError}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleRequestLocation}
+                  className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-100 font-medium text-xs transition-colors flex-shrink-0"
+                >
+                  Coba Lagi
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLocationStatus('idle')}
+                  className="text-amber-300/80 hover:text-white p-1"
+                  aria-label="Tutup pemberitahuan"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Outside Coverage Fallback State */}
+          {locationStatus === 'active' && isOutsideCoverage ? (
+            <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-8 sm:p-10 text-center max-w-lg mx-auto shadow-xl">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-3.5">
+                <MapPinOff className="w-6 h-6" />
+              </div>
+              <h3 className="font-heading font-bold text-white text-base sm:text-lg mb-1.5">
+                Belum ada kos di sekitar lokasi Anda
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto mb-6 leading-relaxed">
+                KosFinder saat ini berfokus pada area kampus di Pulau Jawa dan Bali. Anda tetap dapat menjelajahi seluruh area atau melihat rekomendasi kampus favorit kami.
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleResetLocation}
+                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
+                >
+                  Tampilkan Semua Kampus
+                </button>
+                <Link
+                  to="/cari"
+                  className="px-4 py-2.5 bg-white/10 hover:bg-white/15 text-slate-200 rounded-xl text-xs font-semibold transition-colors border border-white/10"
+                >
+                  Jelajahi Semua Area
+                </Link>
+              </div>
+            </div>
+          ) : (
+            /* Campus Recommendation Cards Grid */
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {displayedCampuses.map((c) => (
+                <Link
+                  key={c.id}
+                  to={`/cari?campus=${c.id}`}
+                  className={`p-5 rounded-2xl bg-gradient-to-br ${c.bg} border transition-all duration-200 hover:-translate-y-1 hover:shadow-xl group flex flex-col justify-between`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <div className="w-10 h-10 rounded-xl bg-white/10 text-white flex items-center justify-center backdrop-blur-sm group-hover:scale-110 transition-transform">
+                        <GraduationCap className="w-5 h-5 text-emerald-300" />
+                      </div>
+                      {c.distanceText && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[10px] font-semibold flex-shrink-0">
+                          <MapPin className="w-3 h-3 text-emerald-400" />
+                          {c.distanceText}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="font-heading font-bold text-base text-white group-hover:text-emerald-300 transition-colors">
+                      {c.name}
+                    </h3>
+                    <p className="text-[11px] text-slate-300 mt-0.5">{c.full}</p>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-emerald-300 font-semibold">
+                    <span className="text-slate-400 font-normal text-[11px] truncate mr-2">{c.area}</span>
+                    <span className="group-hover:translate-x-1 transition-transform inline-flex items-center gap-1 flex-shrink-0">
+                      <span>Lihat Kos</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
