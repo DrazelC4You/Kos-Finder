@@ -28,6 +28,11 @@ services:
         sync: false # sama dengan CLIENT_URL
       - key: TURNSTILE_SECRET_KEY
         sync: false # secret asli dari dashboard Cloudflare Turnstile
+      # Dibaca saat build oleh Vite (client/.env tidak ikut ke repo).
+      # PENTING: isi berpasangan dengan TURNSTILE_SECRET_KEY — dua-duanya diisi
+      # atau dua-duanya dikosongkan, jangan cuma salah satu.
+      - key: VITE_TURNSTILE_SITE_KEY
+        sync: false # site key asli dari dashboard Cloudflare Turnstile
       - key: STORAGE_DRIVER
         value: local
       - key: UPLOAD_DIR
