@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Home, Lock, Mail, User, Phone, Eye, EyeOff, AlertCircle, Building, SearchCheck } from 'lucide-react';
@@ -15,6 +15,45 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Cloudflare Turnstile (anti-bot). Aktif hanya jika site key dikonfigurasi.
+  const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+  const [cfToken, setCfToken] = useState(null);
+  const turnstileContainerRef = useRef(null);
+  const turnstileWidgetId = useRef(null);
+
+  useEffect(() => {
+    if (!turnstileSiteKey) return;
+
+    const renderWidget = () => {
+      if (!window.turnstile || !turnstileContainerRef.current || turnstileWidgetId.current !== null) return;
+      turnstileWidgetId.current = window.turnstile.render(turnstileContainerRef.current, {
+        sitekey: turnstileSiteKey,
+        callback: (token) => setCfToken(token),
+        'expired-callback': () => setCfToken(null),
+        'error-callback': () => setCfToken(null)
+      });
+    };
+
+    if (window.turnstile) {
+      renderWidget();
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    script.async = true;
+    script.defer = true;
+    script.onload = renderWidget;
+    document.head.appendChild(script);
+  }, [turnstileSiteKey]);
+
+  const resetTurnstile = () => {
+    setCfToken(null);
+    if (window.turnstile && turnstileWidgetId.current !== null) {
+      window.turnstile.reset(turnstileWidgetId.current);
+    }
+  };
+
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -27,6 +66,11 @@ export default function RegisterPage() {
       return;
     }
 
+    if (turnstileSiteKey && !cfToken) {
+      setError('Silakan selesaikan verifikasi captcha terlebih dahulu.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -36,11 +80,13 @@ export default function RegisterPage() {
         phone,
         password,
         confirmPassword,
-        role
+        role,
+        cfTurnstileToken: cfToken
       });
       navigate(userData.role === 'OWNER' ? '/owner/dashboard' : '/', { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Pendaftaran gagal. Silakan periksa kembali data Anda.');
+      resetTurnstile();
     } finally {
       setLoading(false);
     }
@@ -200,9 +246,16 @@ export default function RegisterPage() {
               </div>
             </div>
 
+            {/* Cloudflare Turnstile Captcha */}
+            {turnstileSiteKey && (
+              <div className="flex justify-center pt-1">
+                <div ref={turnstileContainerRef}></div>
+              </div>
+            )}
+
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (turnstileSiteKey && !cfToken)}
               className="w-full mt-2 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-xl transition-all shadow-md shadow-emerald-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Mendaftarkan Akun...' : 'Daftar Sekarang'}

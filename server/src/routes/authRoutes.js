@@ -2,11 +2,12 @@ import { Router } from 'express';
 import { register, login, getMe, logout, getDemoAccounts, forgotPassword, resetPassword, verifyEmail, resendVerification } from '../controllers/authController.js';
 import { authenticate } from '../middleware/auth.js';
 import { registerLimiter } from '../middleware/rateLimit.js';
+import { verifyTurnstile } from '../middleware/turnstile.js';
 
 const router = Router();
 
 // Public routes
-router.post('/register', registerLimiter, register);
+router.post('/register', registerLimiter, verifyTurnstile, register);
 router.post('/login', login);
 router.post('/logout', logout);
 router.get('/demo-accounts', getDemoAccounts);
