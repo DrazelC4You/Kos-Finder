@@ -4,6 +4,7 @@ import api from '../services/api.js';
 import KosCard from '../components/KosCard.jsx';
 import KosCardSkeleton from '../components/KosCardSkeleton.jsx';
 import SearchDropdown from '../components/SearchDropdown.jsx';
+import IndonesiaMap from '../components/IndonesiaMap.jsx';
 import {
   Search, MapPin, Banknote, Home, CheckCircle2, Shield,
   ArrowRight, Users, Sparkles, ChevronDown, ChevronUp,
@@ -35,6 +36,27 @@ const headlines = [
       </>
     ),
   },
+];
+
+// Kota pada section destinasi (semua ada di data kartu kota) + koordinat peta
+const MAP_CITY_LOCATIONS = [
+  { name: 'Jakarta', lat: -6.2088, lng: 106.8456, labelSide: 'above' },
+  { name: 'Bandung', lat: -6.9175, lng: 107.6191, labelSide: 'below' },
+  { name: 'Purwokerto', lat: -7.4297, lng: 109.2341, labelSide: 'below', labelDy: 21 },
+  { name: 'Semarang', lat: -6.9932, lng: 110.4203, labelSide: 'above' },
+  { name: 'Yogyakarta', lat: -7.7956, lng: 110.3695, labelSide: 'below', labelDy: 26 },
+  { name: 'Surabaya', lat: -7.2575, lng: 112.7521, labelSide: 'above' },
+  { name: 'Malang', lat: -7.9666, lng: 112.6326, labelSide: 'below' },
+  { name: 'Bali', lat: -8.65, lng: 115.217, labelSide: 'below' },
+];
+
+// Koneksi dekoratif antar kota yang ada (bukan rute)
+const MAP_CITY_CONNECTIONS = [
+  { from: 'Jakarta', to: 'Bandung' },
+  { from: 'Jakarta', to: 'Yogyakarta' },
+  { from: 'Yogyakarta', to: 'Surabaya' },
+  { from: 'Jakarta', to: 'Purwokerto' },
+  { from: 'Surabaya', to: 'Bali' },
 ];
 
 const RotatingHeroHeadline = React.memo(function RotatingHeroHeadline() {
@@ -96,7 +118,7 @@ const RotatingHeroHeadline = React.memo(function RotatingHeroHeadline() {
         <button
           onClick={goPrev}
           aria-label="Headline sebelumnya"
-          className="hidden sm:flex absolute -left-8 lg:-left-14 z-10 items-center justify-center w-9 h-9 rounded-full bg-white/80 border border-slate-200 shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 hover:bg-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+          className="hidden sm:flex absolute -left-3 lg:-left-12 z-10 items-center justify-center w-9 h-9 rounded-full bg-white/80 border border-slate-200 shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 hover:bg-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
             <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
@@ -131,7 +153,7 @@ const RotatingHeroHeadline = React.memo(function RotatingHeroHeadline() {
         <button
           onClick={goNext}
           aria-label="Headline berikutnya"
-          className="hidden sm:flex absolute -right-8 lg:-right-14 z-10 items-center justify-center w-9 h-9 rounded-full bg-white/80 border border-slate-200 shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 hover:bg-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+          className="hidden sm:flex absolute -right-3 lg:-right-12 z-10 items-center justify-center w-9 h-9 rounded-full bg-white/80 border border-slate-200 shadow-sm text-slate-500 hover:text-emerald-600 hover:border-emerald-300 hover:bg-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
             <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
@@ -344,8 +366,27 @@ export default function HomePage() {
   return (
     <div className="space-y-16 pb-16">
       {/* 1. HERO SECTION */}
-      <section className="bg-gradient-to-b from-emerald-50 via-slate-50 to-slate-50 pt-12 pb-16 border-b border-slate-100">
-        <div className="max-w-5xl mx-auto px-4 text-center">
+      <section className="relative bg-gradient-to-b from-emerald-50 via-slate-50 to-slate-50 pt-12 pb-16 border-b border-slate-100">
+        {/* Latar peta Indonesia bertitik — dekoratif, non-interaktif (aria-hidden + pointer-events-none).
+            Framing nusantara seimbang & terpusat:
+            - Desktop: Peta terpusat di belakang hero (left-1/2 -translate-x-1/2), skala proporsional 100-105% (1020px)
+              agar seluruh kepulauan (Sumatra di barat, Papua di timur) tampil utuh tanpa terpotong.
+            - Pulau Jawa: Duduk di area tengah-bawah di atas search bar, diperjelas dengan penekanan kontras
+              titik hijau KosFinder dan soft emerald aura lokal tanpa menggeser peta secara ekstrem.
+            - Mobile: Viewport sempit menggunakan crop Jawa & Bali dengan densitas marker diringankan. */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none" aria-hidden="true">
+          <IndonesiaMap
+          className="absolute top-[70px] left-1/2 -translate-x-1/2 w-[94%] max-w-[420px] h-auto sm:top-[80px] sm:max-w-[460px] md:top-[115px] md:w-[720px] md:max-w-none lg:top-[55px] lg:w-[1020px]"
+            locations={MAP_CITY_LOCATIONS}
+            connections={MAP_CITY_CONNECTIONS}
+            lineColor="#10b981"
+            showLabels={false}
+            markerOpacity={0.55}
+            animationDuration={3}
+            loop={true}
+          />
+        </div>
+        <div className="relative z-10 max-w-5xl mx-auto px-4 text-center">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200 mb-5">
             <Sparkles className="w-3.5 h-3.5 text-emerald-600" /> Platform Cari & Kelola Kos No. 1
           </span>

@@ -1,5 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
+
+const MENU_GAP = 8;
 
 export default function SearchDropdown({
   id,
@@ -14,8 +16,10 @@ export default function SearchDropdown({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [placement, setPlacement] = useState('down');
   const containerRef = useRef(null);
   const triggerRef = useRef(null);
+  const menuRef = useRef(null);
 
   const selectedOption = options.find((opt) => opt.value === value);
 
@@ -36,6 +40,27 @@ export default function SearchDropdown({
       document.removeEventListener('touchstart', handleOutsideClick);
     };
   }, [isOpen]);
+
+  // Buka ke atas bila ruang di bawah menu tidak cukup agar menu tetap utuh di viewport.
+  // Diukur dari container (offset parent menu) dan sebelum paint agar tidak berkedip.
+  useLayoutEffect(() => {
+    if (!isOpen || !containerRef.current || !menuRef.current) return;
+
+    const anchor = containerRef.current.getBoundingClientRect();
+    const needed = menuRef.current.offsetHeight + MENU_GAP;
+    const spaceBelow = window.innerHeight - anchor.bottom;
+    const spaceAbove = anchor.top;
+
+    setPlacement(spaceBelow < needed && spaceAbove > spaceBelow ? 'up' : 'down');
+  }, [isOpen]);
+
+  // Jaga opsi yang di-highlight tetap terlihat saat menu discroll (navigasi keyboard)
+  useEffect(() => {
+    if (!isOpen || highlightedIndex < 0 || !menuRef.current) return;
+
+    const items = menuRef.current.querySelectorAll('[role="option"]');
+    items[highlightedIndex]?.scrollIntoView({ block: 'nearest' });
+  }, [isOpen, highlightedIndex]);
 
   // Handle item selection
   const handleSelect = (val) => {
@@ -134,9 +159,14 @@ export default function SearchDropdown({
       {isOpen && (
         <div
           id={`${id}-menu`}
+          ref={menuRef}
           role="listbox"
           aria-labelledby={`${id}-label`}
-          className={`absolute top-[calc(100%+8px)] left-0 ${menuWidth} bg-white rounded-2xl border border-slate-200/90 shadow-xl shadow-slate-200/70 p-1.5 z-50 animate-dropdown`}
+          className={`absolute left-0 ${menuWidth} max-h-[240px] overflow-y-auto overscroll-contain bg-white rounded-2xl border border-slate-200/90 shadow-xl shadow-slate-200/70 p-1.5 z-50 ${
+            placement === 'up'
+              ? 'bottom-[calc(100%+8px)] animate-dropdown-up'
+              : 'top-[calc(100%+8px)] animate-dropdown'
+          }`}
         >
           <ul className="space-y-0.5 focus:outline-none" tabIndex={-1}>
             {options.map((opt, idx) => {

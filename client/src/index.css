@@ -63,6 +63,36 @@
     transform-origin: top left;
   }
 
+  @keyframes dropdownInUp {
+    0% {
+      opacity: 0;
+      transform: translateY(4px) scale(0.98);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .animate-dropdown-up {
+    animation: dropdownInUp 150ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    transform-origin: bottom left;
+  }
+
+  /* === Marker pulse peta Indonesia (IndonesiaMap) === */
+  @keyframes kosMapPulse {
+    0%   { transform: scale(0.55); opacity: 0.65; }
+    70%  { transform: scale(2.6);  opacity: 0; }
+    100% { transform: scale(2.6);  opacity: 0; }
+  }
+
+  .kos-map-pulse {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: kosMapPulse 3.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    opacity: 0;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .animate-headline-in-right,
     .animate-headline-in-left {
@@ -72,7 +102,11 @@
     .animate-headline-out-right {
       animation: headlineOutLeft 120ms linear forwards;
     }
-    .animate-dropdown {
+    .animate-dropdown,
+    .animate-dropdown-up {
+      animation: none;
+    }
+    .kos-map-pulse {
       animation: none;
     }
   }

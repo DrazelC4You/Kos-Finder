@@ -1,44 +1,76 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Home, Search, Shield, MessageSquare, Star, MapPin,
-  CheckCircle2, Users, Building, ArrowRight, HeartHandshake
+  Home, Search, ShieldCheck, MessageCircle, Star, MapPin,
+  CheckCircle2, Users, Building, ArrowRight, CircleDollarSign
 } from 'lucide-react';
+import { GradientCard } from '../components/GradientCard.jsx';
 
+// ─── Feature card definitions ──────────────────────────────────────────────────
 const VALUES = [
   {
-    icon: Shield,
+    icon: ShieldCheck,
     title: 'Listing Terverifikasi',
-    desc: 'Setiap properti kos melewati proses verifikasi oleh tim admin sebelum tampil publik, sehingga pencari kos terhindar dari iklan palsu.'
+    desc: 'Setiap properti kos melewati proses verifikasi oleh tim admin sebelum tampil publik, sehingga pencari kos terhindar dari iklan palsu.',
+    decorative: 'shield',
+    // Soft emerald / mint gradient
+    gradient: 'bg-gradient-to-br from-emerald-50 via-teal-50 to-emerald-100',
+    accentColor: 'text-emerald-600',
+    iconBg: 'bg-emerald-100',
+    borderColor: 'border-emerald-200/70',
+    cta: 'Lihat Semua Listing',
   },
   {
-    icon: MessageSquare,
+    icon: MessageCircle,
     title: 'Komunikasi Langsung',
-    desc: 'Chat terintegrasi antara pencari kos dan pemilik memudahkan tanya-jawab seputar kamar, harga, dan aturan sebelum mengajukan sewa.'
+    desc: 'Chat terintegrasi antara pencari kos dan pemilik memudahkan tanya-jawab seputar kamar, harga, dan aturan sebelum mengajukan sewa.',
+    decorative: 'chat',
+    // Soft teal / blue-green gradient
+    gradient: 'bg-gradient-to-br from-teal-50 via-cyan-50 to-sky-100/60',
+    accentColor: 'text-teal-600',
+    iconBg: 'bg-teal-100',
+    borderColor: 'border-teal-200/70',
+    cta: 'Mulai Chat',
   },
   {
     icon: Star,
     title: 'Ulasan Transparan',
-    desc: 'Rating dan ulasan berasal dari penyewa asli yang pernah mengajukan booking, memberikan gambaran jujur kondisi kos.'
+    desc: 'Rating dan ulasan berasal dari penyewa asli yang pernah mengajukan booking, memberikan gambaran jujur kondisi kos.',
+    decorative: 'star',
+    // Soft green / warm neutral gradient
+    gradient: 'bg-gradient-to-br from-green-50 via-emerald-50/80 to-slate-100/60',
+    accentColor: 'text-emerald-700',
+    iconBg: 'bg-green-100',
+    borderColor: 'border-green-200/70',
+    cta: 'Lihat Ulasan',
   },
   {
-    icon: HeartHandshake,
+    icon: CircleDollarSign,
     title: 'Tanpa Biaya Tersembunyi',
-    desc: 'Harga yang tampil adalah harga sewa per bulan dari pemilik. Pengajuan sewa dilakukan langsung di dalam platform.'
-  }
+    desc: 'Harga yang tampil adalah harga sewa per bulan dari pemilik. Pengajuan sewa dilakukan langsung di dalam platform.',
+    decorative: 'price',
+    // Soft mint / emerald gradient
+    gradient: 'bg-gradient-to-br from-emerald-50/90 via-teal-50 to-cyan-50/80',
+    accentColor: 'text-teal-700',
+    iconBg: 'bg-teal-100/80',
+    borderColor: 'border-teal-200/60',
+    cta: 'Pelajari Cara Kerja',
+  },
 ];
 
+// ─── Stats row ─────────────────────────────────────────────────────────────────
 const STATS = [
   { icon: Building, value: '12+', label: 'Properti Terdaftar' },
   { icon: MapPin, value: '9', label: 'Kota Jangkauan' },
   { icon: Users, value: '3 Peran', label: 'Pencari, Pemilik, Admin' },
-  { icon: CheckCircle2, value: '100%', label: 'Listing Dimoderasi' }
+  { icon: CheckCircle2, value: '100%', label: 'Listing Dimoderasi' },
 ];
 
 export default function AboutPage() {
   return (
     <div className="bg-slate-50">
-      {/* Hero */}
+
+      {/* ── Hero ──────────────────────────────────────────────────────────────── */}
       <section className="bg-gradient-to-br from-emerald-700 via-emerald-600 to-teal-600 text-white">
         <div className="max-w-6xl mx-auto px-4 py-16 sm:py-20 text-center">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 border border-white/25 text-xs font-semibold mb-5">
@@ -56,7 +88,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Stats */}
+      {/* ── Stats ─────────────────────────────────────────────────────────────── */}
       <section className="max-w-6xl mx-auto px-4 -mt-8">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {STATS.map((s) => (
@@ -71,9 +103,11 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Misi */}
+      {/* ── Misi Kami ─────────────────────────────────────────────────────────── */}
       <section className="max-w-6xl mx-auto px-4 py-14">
         <div className="grid lg:grid-cols-2 gap-10 items-center">
+
+          {/* LEFT: copy & CTAs */}
           <div>
             <h2 className="text-2xl font-bold text-slate-900 font-heading mb-4">Misi Kami</h2>
             <p className="text-sm text-slate-600 leading-relaxed mb-4">
@@ -105,44 +139,55 @@ export default function AboutPage() {
             </div>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4">
+          {/* RIGHT: 2×2 gradient-card grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {VALUES.map((v) => (
-              <div key={v.title} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center mb-3">
-                  <v.icon className="w-5 h-5" />
-                </div>
-                <h3 className="text-sm font-bold text-slate-900 mb-1.5">{v.title}</h3>
-                <p className="text-xs text-slate-500 leading-relaxed">{v.desc}</p>
-              </div>
+              <GradientCard
+                key={v.title}
+                icon={v.icon}
+                title={v.title}
+                description={v.desc}
+                decorative={v.decorative}
+                gradient={v.gradient}
+                accentColor={v.accentColor}
+                iconBg={v.iconBg}
+                borderColor={v.borderColor}
+                cta={v.cta}
+              />
             ))}
           </div>
+
         </div>
       </section>
 
-      {/* Cara Kerja Singkat */}
+      {/* ── Cara Kerja Singkat ────────────────────────────────────────────────── */}
       <section className="bg-white border-y border-slate-200">
         <div className="max-w-6xl mx-auto px-4 py-14">
-          <h2 className="text-2xl font-bold text-slate-900 font-heading text-center mb-10">Bagaimana KosFinder Bekerja</h2>
+          <h2 className="text-2xl font-bold text-slate-900 font-heading text-center mb-10">
+            Bagaimana KosFinder Bekerja
+          </h2>
           <div className="grid md:grid-cols-3 gap-6">
             {[
               {
                 step: '01',
                 title: 'Cari & Bandingkan',
-                desc: 'Gunakan filter kota, harga, tipe kos, dan fasilitas untuk menemukan hunian yang paling sesuai kebutuhan dan bujet Anda.'
+                desc: 'Gunakan filter kota, harga, tipe kos, dan fasilitas untuk menemukan hunian yang paling sesuai kebutuhan dan bujet Anda.',
               },
               {
                 step: '02',
                 title: 'Chat & Ajukan Sewa',
-                desc: 'Diskusikan detail dengan pemilik melalui chat terintegrasi, lalu ajukan booking kamar langsung dari halaman detail kos.'
+                desc: 'Diskusikan detail dengan pemilik melalui chat terintegrasi, lalu ajukan booking kamar langsung dari halaman detail kos.',
               },
               {
                 step: '03',
                 title: 'Huni & Beri Ulasan',
-                desc: 'Setelah pengajuan disetujui pemilik, kamar menjadi milik Anda. Bagikan pengalaman melalui ulasan untuk membantu pencari berikutnya.'
-              }
+                desc: 'Setelah pengajuan disetujui pemilik, kamar menjadi milik Anda. Bagikan pengalaman melalui ulasan untuk membantu pencari berikutnya.',
+              },
             ].map((s) => (
               <div key={s.step} className="relative bg-slate-50 rounded-2xl border border-slate-200 p-6">
-                <span className="text-4xl font-extrabold text-emerald-600/20 font-heading absolute top-4 right-5">{s.step}</span>
+                <span className="text-4xl font-extrabold text-emerald-600/20 font-heading absolute top-4 right-5">
+                  {s.step}
+                </span>
                 <h3 className="text-base font-bold text-slate-900 mb-2">{s.title}</h3>
                 <p className="text-xs text-slate-500 leading-relaxed">{s.desc}</p>
               </div>
@@ -151,9 +196,11 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* ── CTA ───────────────────────────────────────────────────────────────── */}
       <section className="max-w-6xl mx-auto px-4 py-14 text-center">
-        <h2 className="text-2xl font-bold text-slate-900 font-heading mb-3">Siap Menemukan Hunian yang Tepat?</h2>
+        <h2 className="text-2xl font-bold text-slate-900 font-heading mb-3">
+          Siap Menemukan Hunian yang Tepat?
+        </h2>
         <p className="text-sm text-slate-500 mb-6 max-w-xl mx-auto">
           Daftar gratis sebagai pencari kos atau pemilik properti dan rasakan pengalaman mengelola hunian yang modern.
         </p>
@@ -165,6 +212,7 @@ export default function AboutPage() {
           <ArrowRight className="w-4 h-4" />
         </Link>
       </section>
+
     </div>
   );
 }
