@@ -5,9 +5,10 @@ import KosCard from '../components/KosCard.jsx';
 import KosCardSkeleton from '../components/KosCardSkeleton.jsx';
 import SearchDropdown from '../components/SearchDropdown.jsx';
 import IndonesiaMap from '../components/IndonesiaMap.jsx';
+import { FaqSection } from '../components/FaqSection.jsx';
 import {
   Search, MapPin, Banknote, Home, CheckCircle2, Shield,
-  ArrowRight, Users, Sparkles, ChevronDown, ChevronUp,
+  ArrowRight, Users, Sparkles,
   GraduationCap, Building2, KeyRound, CalendarCheck, UserCheck,
   Compass, Loader2, X, AlertCircle, MapPinOff
 } from 'lucide-react';
@@ -227,6 +228,9 @@ const TYPE_OPTIONS = [
   { value: 'PUTRI', label: 'Khusus Putri' },
 ];
 
+// Belum ada alamat support resmi — blok kontak FAQ tidak dirender selama nilai ini kosong.
+const SUPPORT_EMAIL = '';
+
 export default function HomePage() {
   const navigate = useNavigate();
 
@@ -240,9 +244,6 @@ export default function HomePage() {
   const [latestKos, setLatestKos] = useState([]);
   const [loadingPopular, setLoadingPopular] = useState(true);
   const [loadingLatest, setLoadingLatest] = useState(true);
-
-  // FAQ toggle state
-  const [openFaq, setOpenFaq] = useState(null);
 
   // Campus & Location recommendations state
   const [campusList, setCampusList] = useState(DEFAULT_CAMPUS_PRESETS);
@@ -346,20 +347,20 @@ export default function HomePage() {
 
   const faqs = [
     {
-      q: 'Apakah mencari kos di KosFinder dipungut biaya?',
-      a: 'Tidak sama sekali! KosFinder 100% gratis untuk pencari kos. Anda dapat mencari, melihat detail, dan menghubungi pemilik tanpa biaya perantara.'
+      question: 'Apakah mencari kos di KosFinder dipungut biaya?',
+      answer: 'Tidak sama sekali! KosFinder 100% gratis untuk pencari kos. Anda dapat mencari, melihat detail, dan menghubungi pemilik tanpa biaya perantara.'
     },
     {
-      q: 'Bagaimana cara menghubungi pemilik kos?',
-      a: 'Pada halaman detail kos, klik tombol "Hubungi / Chat Pemilik" untuk langsung membuka template chat atau kontak pemilik kos terkait.'
+      question: 'Bagaimana cara menghubungi pemilik kos?',
+      answer: 'Pada halaman detail kos, klik tombol "Hubungi / Chat Pemilik" untuk langsung membuka template chat atau kontak pemilik kos terkait.'
     },
     {
-      q: 'Bagaimana cara mendaftarkan kos saya sebagai pemilik?',
-      a: 'Daftar akun baru dengan memilih peran "Pemilik Kos (Owner)". Setelah masuk, Anda dapat langsung mendaftarkan properti dan mengelola ketersediaan kamar.'
+      question: 'Bagaimana cara mendaftarkan kos saya sebagai pemilik?',
+      answer: 'Daftar akun baru dengan memilih peran "Pemilik Kos (Owner)". Setelah masuk, Anda dapat langsung mendaftarkan properti dan mengelola ketersediaan kamar.'
     },
     {
-      q: 'Apakah ketersediaan kamar di KosFinder selalu terbarui?',
-      a: 'Ya, pemilik kos memperbarui status kamar secara berkala dan sistem secara otomatis menghitung jumlah kamar yang siap huni.'
+      question: 'Apakah ketersediaan kamar di KosFinder selalu terbarui?',
+      answer: 'Ya, pemilik kos memperbarui status kamar secara berkala dan sistem secara otomatis menghitung jumlah kamar yang siap huni.'
     }
   ];
 
@@ -1176,37 +1177,17 @@ export default function HomePage() {
       </section>
 
       {/* 7. FAQ SECTION */}
-      <section className="max-w-3xl mx-auto px-4">
-        <div className="text-center mb-8">
-          <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider block mb-1">Pusat Informasi</span>
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 font-heading">Pertanyaan Umum (FAQ)</h2>
-          <p className="text-sm text-slate-500 mt-1">Jawaban atas pertanyaan yang sering diajukan</p>
-        </div>
-
-        <div className="space-y-3">
-          {faqs.map((faq, idx) => (
-            <div key={idx} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
-              <button
-                type="button"
-                onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                className="w-full px-5 py-4 flex items-center justify-between text-left text-sm font-bold text-slate-800 hover:text-emerald-600 transition-colors"
-              >
-                <span>{faq.q}</span>
-                {openFaq === idx ? (
-                  <ChevronUp className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                )}
-              </button>
-              {openFaq === idx && (
-                <div className="px-5 pb-4 text-xs text-slate-600 leading-relaxed border-t border-slate-50 pt-3">
-                  {faq.a}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
+      <FaqSection
+        title="Pertanyaan Umum (FAQ)"
+        description="Jawaban atas pertanyaan yang sering diajukan"
+        items={faqs}
+        contactInfo={SUPPORT_EMAIL ? {
+          title: 'Masih ada pertanyaan?',
+          description: 'Tim kami siap membantu Anda menemukan kos yang pas.',
+          buttonText: 'Hubungi KosFinder',
+          href: `mailto:${SUPPORT_EMAIL}`,
+        } : undefined}
+      />
     </div>
   );
 }
