@@ -517,7 +517,7 @@ export default function OwnerDashboardPage() {
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Toast Notification */}
       {toast.show && (
-        <div className="fixed top-20 right-4 z-50 animate-in fade-in slide-in-from-top-4">
+        <div className="fixed top-20 right-4 z-50">
           <div className={`flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium ${
             toast.type === 'error'
               ? 'bg-red-50 text-red-800 border-red-200'
@@ -1560,7 +1560,7 @@ export default function OwnerDashboardPage() {
       {/* MODAL: TAMBAH / EDIT KOS */}
       {kosModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 my-8 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 my-8 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
               <h3 className="font-heading font-bold text-lg text-slate-900">
                 {editingKosId ? 'Edit Data Properti Kos' : 'Daftarkan Properti Kos Baru'}
@@ -1799,7 +1799,7 @@ export default function OwnerDashboardPage() {
       {/* MODAL: TAMBAH KAMAR */}
       {roomModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
               <h3 className="font-heading font-bold text-base text-slate-900">
                 Tambah Kamar Baru — {targetKosForRoom?.nama}
@@ -1872,7 +1872,7 @@ export default function OwnerDashboardPage() {
       {/* MODAL: KONFIRMASI HAPUS KOS */}
       {deleteKosModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
             <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mb-4">
               <Trash2 className="w-6 h-6" />
             </div>
@@ -1908,7 +1908,7 @@ export default function OwnerDashboardPage() {
       {/* MODAL: BALAS ULASAN */}
       {replyModalOpen && selectedReviewForReply && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
               <div className="flex items-center gap-2 text-emerald-700">
                 <MessageSquare className="w-5 h-5" />
@@ -1983,7 +1983,7 @@ export default function OwnerDashboardPage() {
       {/* MODAL: TOLAK BUKTI PEMBAYARAN */}
       {rejectModalPayment && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
               <div className="flex items-center gap-2 text-rose-600">
                 <CircleX className="w-5 h-5" />

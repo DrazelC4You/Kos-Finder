@@ -309,7 +309,7 @@ export default function TenantDashboardPage() {
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Toast Notification */}
       {toast.show && (
-        <div className="fixed top-20 right-4 z-50 animate-in fade-in slide-in-from-top-4">
+        <div className="fixed top-20 right-4 z-50">
           <div className={`flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium ${
             toast.type === 'error'
               ? 'bg-red-50 text-red-800 border-red-200'
@@ -1189,7 +1189,7 @@ export default function TenantDashboardPage() {
       {/* SUBMIT PAYMENT MODAL */}
       {paymentModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
@@ -1307,7 +1307,7 @@ export default function TenantDashboardPage() {
       {/* EXTENSION REQUEST MODAL (Phase 14) */}
       {extensionModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
@@ -1389,7 +1389,7 @@ export default function TenantDashboardPage() {
       {/* CANCEL BOOKING MODAL */}
       {cancelModalBooking && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
             <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mb-4">
               <AlertTriangle className="w-6 h-6" />
             </div>

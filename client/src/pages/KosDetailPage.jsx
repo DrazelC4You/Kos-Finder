@@ -631,7 +631,7 @@ export default function KosDetailPage() {
 
             {/* Interactive Review Form */}
             {reviewFormOpen && (
-              <form onSubmit={handleReviewSubmit} className="p-5 bg-emerald-50/50 rounded-2xl border border-emerald-200/80 space-y-4 animate-in fade-in">
+              <form onSubmit={handleReviewSubmit} className="p-5 bg-emerald-50/50 rounded-2xl border border-emerald-200/80 space-y-4">
                 <div className="flex items-center justify-between">
                   <h4 className="font-bold text-sm text-slate-900">
                     {user && reviewsData.reviews.some(r => r.tenantId === user.id) ? 'Perbarui Ulasan Anda' : 'Beri Nilai & Ulasan untuk Kos Ini'}
@@ -816,7 +816,7 @@ export default function KosDetailPage() {
       {/* Booking Modal */}
       {bookingModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
             <h3 className="font-heading font-bold text-lg text-slate-900 mb-1">Konfirmasi Pengajuan Booking</h3>
             <p className="text-xs text-slate-500 mb-4">Pengajuan sewa untuk <strong>{kos.nama}</strong></p>
 
@@ -887,7 +887,7 @@ export default function KosDetailPage() {
       {/* Laporkan Kos Modal */}
       {reportModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
             <div className="flex items-center gap-2 mb-1">
               <Flag className="w-4 h-4 text-rose-600" />
               <h3 className="font-heading font-bold text-lg text-slate-900">Laporkan Kos Ini</h3>
