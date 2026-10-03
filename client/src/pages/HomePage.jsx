@@ -370,15 +370,16 @@ export default function HomePage() {
       {/* 1. HERO SECTION */}
       <section className="relative bg-gradient-to-b from-emerald-50 via-slate-50 to-slate-50 pt-12 pb-16 border-b border-slate-100">
         {/* Latar peta Indonesia bertitik — dekoratif, non-interaktif (aria-hidden + pointer-events-none).
-            Framing nusantara seimbang & terpusat:
-            - Desktop: Peta terpusat di belakang hero (left-1/2 -translate-x-1/2), skala proporsional 100-105% (1020px)
-              agar seluruh kepulauan (Sumatra di barat, Papua di timur) tampil utuh tanpa terpotong.
-            - Pulau Jawa: Duduk di area tengah-bawah di atas search bar, diperjelas dengan penekanan kontras
-              titik hijau KosFinder dan soft emerald aura lokal tanpa menggeser peta secara ekstrem.
-            - Mobile: Viewport sempit menggunakan crop Jawa & Bali dengan densitas marker diringankan. */}
+            - < lg: peta terpusat dengan lebar terkontrol (94%/420 → 460 → 720px).
+            - lg–xl: full-bleed (w-full, tepi kiri-kanan viewport), jangkar atas dipertahankan.
+            - xl ke atas: dipusatkan vertikal. Tinggi hasil (w/2.513) mulai melebihi
+              tinggi hero (~601px) sejak ~1374px, jadi sisanya bleed simetris di atas &
+              bawah daripada menenggelamkan seluruh bagian selatan.
+            - Jawa tetap aksen hijau di tengah-bawah; topeng radial di dalam SVG mengikuti
+              posisinya, bukan posisi headline. */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none" aria-hidden="true">
           <IndonesiaMap
-          className="absolute top-[70px] left-1/2 -translate-x-1/2 w-[94%] max-w-[420px] h-auto sm:top-[80px] sm:max-w-[460px] md:top-[115px] md:w-[720px] md:max-w-none lg:top-[55px] lg:w-[1020px]"
+          className="absolute top-[70px] left-1/2 -translate-x-1/2 w-[94%] max-w-[420px] h-auto sm:top-[80px] sm:max-w-[460px] md:top-[115px] md:w-[720px] md:max-w-none lg:top-[55px] lg:left-0 lg:translate-x-0 lg:w-full xl:top-1/2 xl:-translate-y-1/2"
             locations={MAP_CITY_LOCATIONS}
             connections={MAP_CITY_CONNECTIONS}
             lineColor="#10b981"

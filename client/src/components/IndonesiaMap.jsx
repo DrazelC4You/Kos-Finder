@@ -34,6 +34,29 @@ import {
 const DOT_COLOR = '#0f766e';      // teal-700 — kepulauan luar, halus
 const JAVA_DOT_COLOR = '#047857'; // emerald-700 — Jawa, sedikit lebih tegas
 
+// Tekstur desktop di-tuning pada lebar ~1024px. SVG diskalakan dari viewBox
+// 1000 units, jadi di layar lebar dot & marker ikut membesar (1920px = 1.92x).
+// Faktor ini menurunkannya lagi supaya ukuran DAN kerapatan dot tetap sama.
+const DESKTOP_REF_WIDTH = 1024;
+const MIN_DOT_SCALE = 0.35;
+
+function useDotScale() {
+  const read = () => {
+    if (typeof window === 'undefined') return 1;
+    const w = window.innerWidth;
+    // Di bawah lg peta tidak full-bleed, jadi tidak perlu dikompensasi.
+    if (w < 1024) return 1;
+    return Math.max(MIN_DOT_SCALE, Math.min(1, DESKTOP_REF_WIDTH / w));
+  };
+  const [scale, setScale] = React.useState(read);
+  React.useEffect(() => {
+    const onResize = () => setScale(read());
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  return scale;
+}
+
 function useIsMobile() {
   const query = '(max-width: 767px)';
   const [isMobile, setIsMobile] = React.useState(
@@ -80,6 +103,7 @@ export default function IndonesiaMap({
 }) {
   const reducedMotion = useReducedMotion();
   const isMobile = useIsMobile();
+  const dotScale = useDotScale();
 
   // Pada mobile: pilih 4 kota kunci sepanjang Jawa–Bali agar seimbang
   const activeLocations = useMemo(() => {
@@ -173,9 +197,9 @@ export default function IndonesiaMap({
             d={d}
             fill="none"
             stroke={DOT_COLOR}
-            strokeWidth={isMobile ? 3.4 : 2.7}
+            strokeWidth={isMobile ? 3.4 : 2.7 * dotScale}
             strokeLinecap="round"
-            strokeDasharray={`0 ${MAP_PITCH}`}
+            strokeDasharray={`0 ${MAP_PITCH * (isMobile ? 1 : dotScale)}`}
             opacity={isMobile ? 0.15 : 0.28}
           />
         ))}
@@ -187,9 +211,9 @@ export default function IndonesiaMap({
             d={d}
             fill="none"
             stroke={JAVA_DOT_COLOR}
-            strokeWidth={isMobile ? 3.8 : 2.9}
+            strokeWidth={isMobile ? 3.8 : 2.9 * dotScale}
             strokeLinecap="round"
-            strokeDasharray={`0 ${MAP_PITCH}`}
+            strokeDasharray={`0 ${MAP_PITCH * (isMobile ? 1 : dotScale)}`}
             opacity={isMobile ? 0.22 : 0.40}
           />
         ))}
@@ -223,14 +247,14 @@ export default function IndonesiaMap({
             d={arc.d}
             fill="none"
             stroke={lineColor}
-            strokeWidth={isMobile ? 0.8 : 1.3}
+            strokeWidth={isMobile ? 0.8 : 1.3 * dotScale}
             opacity={isMobile ? 0.12 : 0.25}
           />
           <motion.path
             d={arc.d}
             fill="none"
             stroke={lineColor}
-            strokeWidth={isMobile ? 1.1 : 1.7}
+            strokeWidth={isMobile ? 1.1 : 1.7 * dotScale}
             strokeLinecap="round"
             initial={{ pathLength: 0, opacity: 0 }}
             animate={
@@ -263,21 +287,21 @@ export default function IndonesiaMap({
             <circle
               className="kos-map-pulse"
               cx={p.x} cy={p.y}
-              r={isMobile ? 3.4 : 5.5}
+              r={isMobile ? 3.4 : 5.5 * dotScale}
               fill="none"
               stroke={lineColor}
-              strokeWidth={isMobile ? 1.0 : 1.5}
+              strokeWidth={isMobile ? 1.0 : 1.5 * dotScale}
               style={{ animationDelay: `${(i % 5) * 0.6}s` }}
             />
-            <circle cx={p.x} cy={p.y} r={isMobile ? 2.5 : 4.2} fill={lineColor} opacity={0.92} />
-            <circle cx={p.x} cy={p.y} r={isMobile ? 1.0 : 1.7} fill="#ffffff" />
+            <circle cx={p.x} cy={p.y} r={isMobile ? 2.5 : 4.2 * dotScale} fill={lineColor} opacity={0.92} />
+            <circle cx={p.x} cy={p.y} r={isMobile ? 1.0 : 1.7 * dotScale} fill="#ffffff" />
           </g>
           {showLabels && !isMobile && (
             <text
               x={p.x}
               y={p.y + (p.labelSide === 'above' ? -12 : (p.labelDy ?? 22))}
               textAnchor="middle"
-              fontSize={11.5}
+              fontSize={11.5 * dotScale}
               fontWeight={600}
               fill="#047857"
               opacity={0.85}
