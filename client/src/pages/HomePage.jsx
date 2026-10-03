@@ -878,176 +878,43 @@ export default function HomePage() {
       </section>
 
       {/* 6. UNTUK PEMILIK KOS (OWNER PRODUCT CTA) */}
-      <section className="max-w-6xl mx-auto px-4">
-        <div className="bg-gradient-to-br from-emerald-800 to-teal-700 rounded-3xl overflow-hidden shadow-lg">
-          <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-14 px-6 py-10 sm:px-10 sm:py-14 lg:px-14 lg:py-16">
+      <section className="bg-white border-y border-slate-200">
+        <div className="max-w-6xl mx-auto px-4 py-16 sm:py-20 lg:py-24">
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-16 items-start">
 
-            {/* LEFT: Copy & CTAs */}
-            <div className="flex-1 min-w-0 text-center lg:text-left">
-
-              {/* 1. Eyebrow */}
-              <p className="text-xs font-bold text-emerald-300 uppercase tracking-wider mb-3">
+            {/* Kicker + headline */}
+            <div className="lg:col-span-7">
+              <p className="flex items-center gap-3 text-sm font-medium text-emerald-700 mb-5">
+                <span className="h-px w-8 bg-emerald-600" aria-hidden="true" />
                 Untuk Pemilik Kos
               </p>
-
-              {/* 2. Headline */}
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold font-heading text-white leading-tight mb-4">
-                Punya Kos? Kelola Kamar<br className="hidden sm:block" /> dan Temukan Penyewa.
+              <h2 className="font-sans text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-[1.15] text-balance text-slate-900 max-w-[18ch]">
+                Punya Kos? Kelola Kamar dan Temukan Penyewa.
               </h2>
+            </div>
 
-              {/* 3. Supporting text */}
-              <p className="text-emerald-100/80 text-sm sm:text-base leading-relaxed mb-8 max-w-md mx-auto lg:mx-0">
+            {/* Paragraf pendukung + CTA */}
+            <div className="lg:col-span-5 lg:pt-1">
+              <p className="text-base sm:text-lg text-slate-500 leading-relaxed max-w-md">
                 Pasang listing, kelola kamar, dan pantau booking langsung dari KosFinder.
               </p>
-
-              {/* 4. CTA group — satu baris di ≥640px, menumpuk di mobile */}
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 sm:gap-x-5 gap-y-3">
-                {/* Primary CTA */}
+              <div className="mt-8 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-4 sm:gap-5">
                 <Link
                   to="/register"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 bg-white text-emerald-800 font-bold text-sm rounded-xl whitespace-nowrap flex-shrink-0 hover:bg-emerald-50 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-800"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2"
                 >
                   Daftarkan Kos Sekarang
                   <ArrowRight className="w-3.5 h-3.5 flex-shrink-0" />
                 </Link>
-
-                {/* Secondary CTA — text link */}
                 <Link
                   to="/login"
-                  className="inline-flex items-center gap-1 text-sm font-medium text-emerald-100 hover:text-white transition-colors duration-150 whitespace-nowrap flex-shrink-0 group focus-visible:outline-none focus-visible:underline"
+                  className="group inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900 whitespace-nowrap focus-visible:outline-none focus-visible:underline"
                 >
                   <span>Sudah punya akun?</span>
-                  <span className="font-semibold">Masuk Dashboard</span>
+                  <span className="font-medium">Masuk Dashboard</span>
                   <ArrowRight className="w-3.5 h-3.5 flex-shrink-0 group-hover:translate-x-0.5 transition-transform duration-150" />
                 </Link>
               </div>
-
-            </div>
-
-            {/* RIGHT: pratinjau dashboard — satu-satunya visual di section ini */}
-            <div className="w-full max-w-sm mx-auto lg:max-w-none lg:w-[46%] flex-shrink-0 transition-transform duration-300 hover:-translate-y-1">
-              <svg
-                viewBox="90 42 250 206"
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-full h-auto select-none"
-                role="img"
-                aria-label="Pratinjau dasbor pemilik KosFinder"
-              >
-                <defs>
-                  {/* Card shadow filter */}
-                  <filter id="p-shadow" x="-10%" y="-10%" width="125%" height="125%">
-                    <feDropShadow dx="0" dy="8" stdDeviation="12" floodColor="#022C22" floodOpacity="0.35" />
-                  </filter>
-                </defs>
-
-                {/* ── KOSFINDER OWNER DASHBOARD CARD ── */}
-                <g filter="url(#p-shadow)">
-                  {/* Card Background */}
-                  <rect x="108" y="58" width="214" height="166" rx="14" fill="#FFFFFF" stroke="rgba(226,232,240,0.9)" strokeWidth="1" />
-
-                  {/* ── Header ── */}
-                  <rect x="108" y="58" width="214" height="34" rx="14" fill="#FFFFFF" />
-                  <rect x="108" y="78" width="214" height="14" fill="#FFFFFF" />
-                  <line x1="108" y1="92" x2="322" y2="92" stroke="#F1F5F9" strokeWidth="1" />
-
-                  {/* Brand Icon & Title */}
-                  <rect x="120" y="67" width="18" height="18" rx="5" fill="#ECFDF5" />
-                  {/* Mini building/dashboard logo glyph */}
-                  <path d="M124 79 V72 L129 69 L134 72 V79 H124 Z" fill="#10B981" />
-                  <rect x="127" y="75" width="4" height="4" rx="0.5" fill="#FFFFFF" />
-
-                  <text x="144" y="79.5" fill="#0F172A" fontSize="10.5" fontWeight="700" fontFamily="Inter, sans-serif">
-                    Dashboard Pemilik
-                  </text>
-
-                  {/* Live Status Chip */}
-                  <rect x="268" y="67" width="44" height="17" rx="8.5" fill="#ECFDF5" stroke="#A7F3D0" strokeWidth="0.8" />
-                  <circle cx="276" cy="75.5" r="2.5" fill="#10B981" />
-                  <text x="282" y="78.5" fill="#047857" fontSize="7.5" fontWeight="700" fontFamily="Inter, sans-serif">
-                    LIVE
-                  </text>
-
-                  {/* ── Top Metrics Row ── */}
-                  {/* Block 1: Status Kamar (12 Total, 8 Terisi, 4 Kosong) */}
-                  <rect x="118" y="100" width="104" height="62" rx="8" fill="#F8FAFC" stroke="#E2E8F0" strokeWidth="0.8" />
-                  <text x="126" y="111" fill="#64748B" fontSize="7.5" fontWeight="700" fontFamily="Inter, sans-serif">
-                    STATUS KAMAR
-                  </text>
-                  <text x="126" y="126" fill="#0F172A" fontSize="13.5" fontWeight="800" fontFamily="Inter, sans-serif">
-                    8 <tspan fill="#94A3B8" fontSize="9" fontWeight="500">/ 12</tspan>
-                  </text>
-
-                  {/* Occupancy Progress Bar */}
-                  <rect x="126" y="132" width="88" height="4.5" rx="2.25" fill="#E2E8F0" />
-                  <rect x="126" y="132" width="58" height="4.5" rx="2.25" fill="#10B981" />
-
-                  {/* Sub-status tags */}
-                  <circle cx="129" cy="146.5" r="2.2" fill="#10B981" />
-                  <text x="134" y="149" fill="#334155" fontSize="7" fontWeight="600" fontFamily="Inter, sans-serif">
-                    8 Terisi
-                  </text>
-                  <circle cx="172" cy="146.5" r="2.2" fill="#34D399" />
-                  <text x="177" y="149" fill="#64748B" fontSize="7" fontWeight="500" fontFamily="Inter, sans-serif">
-                    4 Tersedia
-                  </text>
-
-                  {/* Block 2: Booking Baru (3 Permintaan) */}
-                  <rect x="228" y="100" width="84" height="62" rx="8" fill="#F8FAFC" stroke="#E2E8F0" strokeWidth="0.8" />
-                  <text x="236" y="111" fill="#64748B" fontSize="7.5" fontWeight="700" fontFamily="Inter, sans-serif">
-                    BOOKING
-                  </text>
-                  <text x="236" y="126" fill="#059669" fontSize="13.5" fontWeight="800" fontFamily="Inter, sans-serif">
-                    3 Baru
-                  </text>
-
-                  {/* Notification Action Chip */}
-                  <rect x="234" y="133" width="72" height="16" rx="4" fill="#ECFDF5" stroke="#A7F3D0" strokeWidth="0.6" />
-                  <circle cx="241" cy="141" r="2" fill="#10B981" />
-                  <text x="246" y="143.5" fill="#047857" fontSize="7" fontWeight="700" fontFamily="Inter, sans-serif">
-                    Perlu Respon
-                  </text>
-
-                  {/* ── Bottom Section: Visual Room Occupancy Grid ── */}
-                  <rect x="118" y="169" width="194" height="44" rx="8" fill="#F1F5F9" />
-                  <text x="126" y="179.5" fill="#475569" fontSize="7.5" fontWeight="700" fontFamily="Inter, sans-serif">
-                    DENAH KAMAR REAL-TIME
-                  </text>
-
-                  {/* Room indicators: 6 green occupied rooms + 2 available rooms */}
-                  <g transform="translate(126, 184)">
-                    <rect width="19" height="18" rx="3.5" fill="#10B981" stroke="#059669" strokeWidth="0.8" />
-                    <text x="9.5" y="12" textAnchor="middle" fill="#FFFFFF" fontSize="7" fontWeight="700" fontFamily="Inter, sans-serif">01</text>
-                  </g>
-                  <g transform="translate(149.5, 184)">
-                    <rect width="19" height="18" rx="3.5" fill="#10B981" stroke="#059669" strokeWidth="0.8" />
-                    <text x="9.5" y="12" textAnchor="middle" fill="#FFFFFF" fontSize="7" fontWeight="700" fontFamily="Inter, sans-serif">02</text>
-                  </g>
-                  <g transform="translate(173, 184)">
-                    <rect width="19" height="18" rx="3.5" fill="#10B981" stroke="#059669" strokeWidth="0.8" />
-                    <text x="9.5" y="12" textAnchor="middle" fill="#FFFFFF" fontSize="7" fontWeight="700" fontFamily="Inter, sans-serif">03</text>
-                  </g>
-                  <g transform="translate(196.5, 184)">
-                    <rect width="19" height="18" rx="3.5" fill="#10B981" stroke="#059669" strokeWidth="0.8" />
-                    <text x="9.5" y="12" textAnchor="middle" fill="#FFFFFF" fontSize="7" fontWeight="700" fontFamily="Inter, sans-serif">04</text>
-                  </g>
-                  <g transform="translate(220, 184)">
-                    <rect width="19" height="18" rx="3.5" fill="#10B981" stroke="#059669" strokeWidth="0.8" />
-                    <text x="9.5" y="12" textAnchor="middle" fill="#FFFFFF" fontSize="7" fontWeight="700" fontFamily="Inter, sans-serif">05</text>
-                  </g>
-                  <g transform="translate(243.5, 184)">
-                    <rect width="19" height="18" rx="3.5" fill="#10B981" stroke="#059669" strokeWidth="0.8" />
-                    <text x="9.5" y="12" textAnchor="middle" fill="#FFFFFF" fontSize="7" fontWeight="700" fontFamily="Inter, sans-serif">06</text>
-                  </g>
-                  <g transform="translate(267, 184)">
-                    <rect width="19" height="18" rx="3.5" fill="#FFFFFF" stroke="#10B981" strokeWidth="0.8" strokeDasharray="2,1.5" />
-                    <text x="9.5" y="12" textAnchor="middle" fill="#059669" fontSize="7" fontWeight="700" fontFamily="Inter, sans-serif">07</text>
-                  </g>
-                  <g transform="translate(290.5, 184)">
-                    <rect width="19" height="18" rx="3.5" fill="#FFFFFF" stroke="#10B981" strokeWidth="0.8" strokeDasharray="2,1.5" />
-                    <text x="9.5" y="12" textAnchor="middle" fill="#059669" fontSize="7" fontWeight="700" fontFamily="Inter, sans-serif">08</text>
-                  </g>
-                </g>
-              </svg>
             </div>
 
           </div>
