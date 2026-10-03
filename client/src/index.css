@@ -114,6 +114,17 @@
     opacity: 0;
   }
 
+  /* Sembunyikan indikator scroll pada bar yang memang bisa digeser
+     (tab dasbor, chip kampus). Kelas ini tadinya dipakai di 3 tempat tanpa
+     pernah didefinisikan, jadi scrollbar OS tetap muncul di mobile. */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
   /* === Bottom navigation mobile (Navbar di App.jsx) === */
   @keyframes navBarIn {
     0%   { opacity: 0; transform: translateY(18px) scale(0.98); }
