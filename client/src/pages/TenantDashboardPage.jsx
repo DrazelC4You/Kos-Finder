@@ -13,6 +13,11 @@ import { formatRupiah } from '../components/KosCard.jsx';
 import RentalAgreementModal from '../components/RentalAgreementModal.jsx';
 import OfficialInvoiceModal from '../components/OfficialInvoiceModal.jsx';
 
+// Alat pengisi data contoh mengirim booking/favorit nyata ke API, jadi hanya
+// boleh muncul di dev. import.meta.env.DEV di-inline Vite sehingga branch ini
+// ter-strip dari bundle produksi.
+const SHOW_DEMO_TOOLS = import.meta.env.DEV;
+
 export default function TenantDashboardPage() {
   const { user, updateUser, isAuthenticated, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -351,8 +356,8 @@ export default function TenantDashboardPage() {
         </div>
       </div>
 
-      {/* Helper Banner Jika Akun Kosong / Belum Ada Data */}
-      {bookings.length === 0 && !loading && (
+      {/* Helper Banner pengisi data contoh — hanya untuk mempercepat uji lokal */}
+      {SHOW_DEMO_TOOLS && bookings.length === 0 && !loading && (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 sm:p-5 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
             <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -573,17 +578,21 @@ export default function TenantDashboardPage() {
               </div>
               <h3 className="font-heading font-bold text-base text-slate-800 mb-1">Belum Ada Pengajuan Sewa</h3>
               <p className="text-xs text-slate-500 max-w-md mx-auto mb-5">
-                Temukan kamar kos impian Anda di Purwokerto dan sekitarnya, atau klik tombol di bawah untuk memuat data pengujian otomatis.
+                {SHOW_DEMO_TOOLS
+                  ? 'Temukan kamar kos impian Anda di Purwokerto dan sekitarnya, atau klik tombol di bawah untuk memuat data pengujian otomatis.'
+                  : 'Temukan kamar kos impian Anda di Purwokerto dan sekitarnya.'}
               </p>
               <div className="flex flex-wrap items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleLoadDemoData}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs rounded-xl shadow-sm transition-all"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Muat Data Contoh (Demo)</span>
-                </button>
+                {SHOW_DEMO_TOOLS && (
+                  <button
+                    type="button"
+                    onClick={handleLoadDemoData}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs rounded-xl shadow-sm transition-all"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Muat Data Contoh (Demo)</span>
+                  </button>
+                )}
                 <Link
                   to="/cari"
                   className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl shadow-sm transition-all"
@@ -826,14 +835,16 @@ export default function TenantDashboardPage() {
               <p className="text-xs text-slate-500 mb-4">Coba ubah filter atau ajukan sewa kos baru.</p>
               {bookings.length === 0 ? (
                 <div className="flex flex-wrap items-center justify-center gap-3">
-                  <button
-                    type="button"
-                    onClick={handleLoadDemoData}
-                    className="px-4 py-2 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-sm transition-all inline-flex items-center gap-1.5"
-                  >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span>Muat Data Contoh (Demo)</span>
-                  </button>
+                  {SHOW_DEMO_TOOLS && (
+                    <button
+                      type="button"
+                      onClick={handleLoadDemoData}
+                      className="px-4 py-2 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-sm transition-all inline-flex items-center gap-1.5"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Muat Data Contoh (Demo)</span>
+                    </button>
+                  )}
                   <Link
                     to="/cari"
                     className="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm"

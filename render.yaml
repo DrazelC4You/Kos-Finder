@@ -22,6 +22,10 @@ services:
         generateValue: true
       - key: JWT_EXPIRES_IN
         value: 7d
+      # Data demo berisi akun admin@kosfinder.com berpassword "Password123!"
+      # (lihat server/prisma/seedData.js). Jangan diaktifkan di produksi.
+      - key: SEED_DEMO_DATA
+        value: "false"
       - key: CLIENT_URL
         sync: false # isi dengan URL aplikasi, mis. https://kosfinder.onrender.com
       - key: CORS_ORIGIN

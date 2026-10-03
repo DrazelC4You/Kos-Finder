@@ -15,9 +15,10 @@ const server = app.listen(PORT, async () => {
     console.log(`📡 Health Check: http://localhost:${PORT}/api/health`);
     console.log(`=========================================`);
 
-    // Auto-seed saat deploy pertama: jika PostgreSQL aktif & tabel user kosong,
-    // isi dengan data demo. Kegagalan cukup dicatat, server tetap berjalan.
-    if (process.env.NODE_ENV === 'production') {
+    // Auto-seed hanya saat diminta eksplisit. Data demo berisi akun admin dengan
+    // password seragam yang tercantum di repo, jadi tidak boleh terbentuk otomatis
+    // di deploy pertama. Set SEED_DEMO_DATA=true untuk mengaktifkan.
+    if (process.env.SEED_DEMO_DATA === 'true') {
         try {
             const { isPostgres } = await getDatabaseStatus();
             if (isPostgres) {
