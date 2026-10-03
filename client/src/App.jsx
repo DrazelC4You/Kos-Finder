@@ -103,7 +103,7 @@ function Navbar() {
     { to: '/cari', label: 'Cari Kos' },
     { to: '/untuk-pemilik', label: 'Untuk Pemilik' },
     { to: '/tentang', label: 'Tentang' },
-    { to: '/tenant/dashboard?tab=favorit', label: 'Favorit', icon: Heart, iconClass: 'text-slate-400' },
+    isTenant && { to: '/tenant/dashboard?tab=favorit', label: 'Favorit', icon: Heart, iconClass: 'text-slate-400' },
     isAuthenticated && { to: '/chat', label: 'Chat', icon: MessageSquare, iconClass: 'text-emerald-600' },
     isTenant && { to: '/tenant/dashboard', label: 'Dashboard Saya', linkClass: 'text-emerald-700 font-semibold' },
     isOwner && { to: '/owner/dashboard', label: 'Dashboard Pemilik', icon: Building, linkClass: 'text-emerald-700 font-semibold' },

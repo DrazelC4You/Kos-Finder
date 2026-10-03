@@ -19,7 +19,7 @@ import OfficialInvoiceModal from '../components/OfficialInvoiceModal.jsx';
 const SHOW_DEMO_TOOLS = import.meta.env.DEV;
 
 export default function TenantDashboardPage() {
-  const { user, updateUser, isAuthenticated, loading: authLoading } = useAuth();
+  const { user, updateUser, isAuthenticated, isTenant, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -116,6 +116,12 @@ export default function TenantDashboardPage() {
       navigate('/login?redirect=/tenant/dashboard');
       return;
     }
+    // /tenant/* di server di-guard authorize('TENANT'), jadi peran lain akan
+    // mendapat 403 untuk tiap endpoint di bawah.
+    if (!isTenant) {
+      navigate('/');
+      return;
+    }
     fetchDashboardData();
 
     if (user) {
@@ -129,7 +135,7 @@ export default function TenantDashboardPage() {
         bio: user.profile?.bio || ''
       });
     }
-  }, [isAuthenticated, user, authLoading]);
+  }, [isAuthenticated, isTenant, user, authLoading]);
 
   // Handle Submit Payment
   const handleSubmitPayment = async (e) => {
