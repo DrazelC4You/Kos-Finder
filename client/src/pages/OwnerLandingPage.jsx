@@ -72,7 +72,7 @@ export default function OwnerLandingPage() {
               <Building className="w-3.5 h-3.5" />
               Untuk Pemilik Properti
             </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold font-heading leading-tight mb-4">
+            <h1 className="text-3xl sm:text-4xl font-extrabold font-heading leading-tight mb-4 text-white">
               Kelola Kos Lebih Mudah dengan KosFinder.
             </h1>
             <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-7 max-w-lg">
@@ -154,8 +154,8 @@ export default function OwnerLandingPage() {
       <section className="max-w-6xl mx-auto px-4 py-14">
         <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-3xl px-8 py-12 text-center text-white shadow-lg shadow-emerald-600/20">
           <CheckCircle2 className="w-10 h-10 mx-auto mb-4 text-emerald-100" />
-          <h2 className="text-2xl font-bold font-heading mb-3">Properti Anda, Penghuni Baru Anda</h2>
-          <p className="text-sm text-emerald-50/90 max-w-xl mx-auto mb-7">
+          <h2 className="text-2xl font-bold font-heading mb-3 text-white">Properti Anda, Penghuni Baru Anda</h2>
+          <p className="text-sm text-white/90 max-w-xl mx-auto mb-7">
             Bergabunglah dengan pemilik kos lainnya di KosFinder dan biarkan kamar kosong Anda terisi lebih cepat.
           </p>
           <Link

@@ -538,7 +538,7 @@ export default function OwnerDashboardPage() {
               <Building className="w-3.5 h-3.5" />
               <span>Portal Pengelolaan Pemilik Kos</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-heading font-extrabold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-heading font-extrabold tracking-tight text-white">
               Halo, {user?.name || 'Pemilik Kos'}! 🏢
             </h1>
             <p className="text-slate-300 text-xs sm:text-sm mt-1 max-w-xl">

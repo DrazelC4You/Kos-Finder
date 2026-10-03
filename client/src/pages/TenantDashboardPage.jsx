@@ -330,7 +330,7 @@ export default function TenantDashboardPage() {
               <Sparkles className="w-3.5 h-3.5" />
               <span>Portal Pencari Kos</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-heading font-extrabold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-heading font-extrabold tracking-tight text-white">
               Halo, {user?.name || 'Pencari Kos'}! 👋
             </h1>
             <p className="text-emerald-100/90 text-xs sm:text-sm mt-1 max-w-xl">

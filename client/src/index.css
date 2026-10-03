@@ -26,6 +26,8 @@
     @apply bg-slate-50 text-slate-800 font-sans;
   }
 
+  /* Hati-hati: aturan base mengalahkan text-white yang diinherit dari section
+     gelap. Heading di atas latar gelap wajib memberi warna sendiri. */
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading font-bold text-slate-900;
   }

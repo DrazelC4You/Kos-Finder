@@ -77,7 +77,7 @@ export default function AboutPage() {
             <Home className="w-3.5 h-3.5" />
             Tentang KosFinder
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold font-heading leading-tight mb-4">
+          <h1 className="text-3xl sm:text-4xl font-extrabold font-heading leading-tight mb-4 text-white">
             Mempertemukan Pencari Kos dan<br className="hidden sm:block" /> Pemilik Properti yang Tepat
           </h1>
           <p className="text-emerald-50/90 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
