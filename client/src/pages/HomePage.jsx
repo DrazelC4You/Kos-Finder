@@ -9,7 +9,7 @@ import { FaqSection } from '../components/FaqSection.jsx';
 import {
   Search, MapPin, Banknote, Home, CheckCircle2, Shield,
   ArrowRight, Users, Sparkles,
-  GraduationCap, Building2, KeyRound, CalendarCheck, UserCheck,
+  GraduationCap, CalendarCheck,
   Compass, Loader2, X, AlertCircle, MapPinOff
 } from 'lucide-react';
 import {
@@ -879,62 +879,42 @@ export default function HomePage() {
 
       {/* 6. UNTUK PEMILIK KOS (OWNER PRODUCT CTA) */}
       <section className="max-w-6xl mx-auto px-4">
-        <div className="relative bg-gradient-to-br from-emerald-800 via-emerald-700 to-emerald-600 rounded-3xl overflow-hidden shadow-xl">
-          {/* Subtle decorative rings */}
-          <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full border border-white/[0.07] pointer-events-none" />
-          <div className="absolute -top-8 -right-8 w-48 h-48 rounded-full border border-white/[0.07] pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-56 h-56 rounded-full bg-emerald-900/20 -translate-x-1/2 translate-y-1/2 pointer-events-none" />
-
-          <div className="relative flex flex-col md:flex-row items-center gap-8 px-8 py-10 sm:px-12 sm:py-12">
+        <div className="bg-gradient-to-br from-emerald-800 to-teal-700 rounded-3xl overflow-hidden shadow-lg">
+          <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-14 px-6 py-10 sm:px-10 sm:py-14 lg:px-14 lg:py-16">
 
             {/* LEFT: Copy & CTAs */}
-            <div className="flex-1 min-w-0 text-center md:text-left">
+            <div className="flex-1 min-w-0 text-center lg:text-left">
 
-              {/* 1. Badge */}
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 border border-white/20 rounded-full text-xs font-semibold text-emerald-100 mb-4">
-                <Building2 className="w-3.5 h-3.5 flex-shrink-0" />
+              {/* 1. Eyebrow */}
+              <p className="text-xs font-bold text-emerald-300 uppercase tracking-wider mb-3">
                 Untuk Pemilik Kos
-              </span>
+              </p>
 
               {/* 2. Headline */}
-              <h2 className="text-2xl sm:text-3xl font-extrabold font-heading text-white leading-tight mb-3">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold font-heading text-white leading-tight mb-4">
                 Punya Kos? Kelola Kamar<br className="hidden sm:block" /> dan Temukan Penyewa.
               </h2>
 
               {/* 3. Supporting text */}
-              <p className="text-emerald-100/90 text-sm leading-relaxed mb-5 max-w-md mx-auto md:mx-0">
+              <p className="text-emerald-100/80 text-sm sm:text-base leading-relaxed mb-8 max-w-md mx-auto lg:mx-0">
                 Pasang listing, kelola kamar, dan pantau booking langsung dari KosFinder.
               </p>
 
-              {/* 4. Feature benefits row */}
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-5 gap-y-2 mb-7">
-                {[
-                  { icon: Building2,  label: 'Pasang Listing' },
-                  { icon: KeyRound,   label: 'Kelola Kamar' },
-                  { icon: UserCheck,  label: 'Temukan Penyewa' },
-                ].map(({ icon: Icon, label }) => (
-                  <span key={label} className="inline-flex items-center gap-1.5 text-[13px] font-medium text-emerald-100/90 leading-none">
-                    <Icon className="w-4 h-4 text-emerald-300 flex-shrink-0" strokeWidth={2} />
-                    {label}
-                  </span>
-                ))}
-              </div>
-
-              {/* 5 + 6. CTA group — flex row, baseline-aligned */}
-              <div className="flex flex-row flex-wrap items-center justify-center md:justify-start gap-x-5 gap-y-3">
+              {/* 4. CTA group — satu baris di ≥640px, menumpuk di mobile */}
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 sm:gap-x-5 gap-y-3">
                 {/* Primary CTA */}
                 <Link
                   to="/register"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-emerald-800 font-bold text-sm rounded-xl shadow-md hover:bg-emerald-50 hover:shadow-lg active:scale-[0.98] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-700 flex-shrink-0"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 bg-white text-emerald-800 font-bold text-sm rounded-xl whitespace-nowrap flex-shrink-0 hover:bg-emerald-50 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-800"
                 >
                   Daftarkan Kos Sekarang
                   <ArrowRight className="w-3.5 h-3.5 flex-shrink-0" />
                 </Link>
 
-                {/* Secondary CTA — text link, same line */}
+                {/* Secondary CTA — text link */}
                 <Link
                   to="/login"
-                  className="inline-flex items-center gap-1 text-sm font-medium text-emerald-100 hover:text-white transition-colors duration-150 group focus-visible:outline-none focus-visible:underline flex-shrink-0"
+                  className="inline-flex items-center gap-1 text-sm font-medium text-emerald-100 hover:text-white transition-colors duration-150 whitespace-nowrap flex-shrink-0 group focus-visible:outline-none focus-visible:underline"
                 >
                   <span>Sudah punya akun?</span>
                   <span className="font-semibold">Masuk Dashboard</span>
@@ -944,102 +924,23 @@ export default function HomePage() {
 
             </div>
 
-            {/* RIGHT: KosFinder Owner Product Dashboard Preview */}
-            <div className="flex-shrink-0 flex items-center justify-center w-full md:w-auto mt-4 md:mt-0">
+            {/* RIGHT: pratinjau dashboard — satu-satunya visual di section ini */}
+            <div className="w-full max-w-sm mx-auto lg:max-w-none lg:w-[46%] flex-shrink-0 transition-transform duration-300 hover:-translate-y-1">
               <svg
-                viewBox="0 0 340 250"
+                viewBox="90 42 250 206"
                 xmlns="http://www.w3.org/2000/svg"
-                className="w-64 sm:w-72 md:w-84 lg:w-96 h-auto select-none"
-                aria-hidden="true"
+                className="w-full h-auto select-none"
+                role="img"
+                aria-label="Pratinjau dasbor pemilik KosFinder"
               >
                 <defs>
-                  {/* Ambient spotlight glow */}
-                  <radialGradient id="p-halo" cx="50%" cy="45%" r="55%">
-                    <stop offset="0%" stopColor="rgba(167,243,208,0.20)" />
-                    <stop offset="70%" stopColor="rgba(52,211,153,0.04)" />
-                    <stop offset="100%" stopColor="rgba(0,0,0,0)" />
-                  </radialGradient>
-
-                  {/* Building facade gradients */}
-                  <linearGradient id="p-bldg-front" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#F8FAFC" />
-                    <stop offset="100%" stopColor="#E2E8F0" />
-                  </linearGradient>
-                  <linearGradient id="p-bldg-side" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#CBD5E1" />
-                    <stop offset="100%" stopColor="#94A3B8" />
-                  </linearGradient>
-
-                  {/* Window warm lighting */}
-                  <linearGradient id="p-win-warm" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#FEF08A" />
-                    <stop offset="100%" stopColor="#F59E0B" />
-                  </linearGradient>
-                  {/* Window mint lighting */}
-                  <linearGradient id="p-win-mint" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#A7F3D0" />
-                    <stop offset="100%" stopColor="#10B981" />
-                  </linearGradient>
-
                   {/* Card shadow filter */}
                   <filter id="p-shadow" x="-10%" y="-10%" width="125%" height="125%">
                     <feDropShadow dx="0" dy="8" stdDeviation="12" floodColor="#022C22" floodOpacity="0.35" />
                   </filter>
                 </defs>
 
-                {/* ── 1. AMBIENT GLOW & ORBIT ACCENTS ── */}
-                <ellipse cx="170" cy="130" rx="130" ry="100" fill="url(#p-halo)" />
-                <circle cx="170" cy="130" r="115" stroke="rgba(255,255,255,0.06)" strokeWidth="1" strokeDasharray="5,5" fill="none" />
-
-                {/* ── 2. SECONDARY: MODERN KOS BUILDING (Partially behind dashboard on left) ── */}
-                <g opacity="0.95">
-                  {/* Roof Deck Overhang */}
-                  <polygon points="44,48 136,48 148,40 56,40" fill="#064E3B" />
-                  <polygon points="44,48 136,48 136,52 44,52" fill="#047857" />
-                  <line x1="44" y1="48" x2="56" y2="40" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
-                  <line x1="56" y1="40" x2="148" y2="40" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
-
-                  {/* Main Building Facade */}
-                  <rect x="48" y="52" width="88" height="138" rx="4" fill="url(#p-bldg-front)" />
-
-                  {/* Perspective Side Wall */}
-                  <polygon points="136,52 148,44 148,184 136,190" fill="url(#p-bldg-side)" />
-                  {/* Side architectural slats */}
-                  <line x1="140" y1="50" x2="140" y2="186" stroke="#059669" strokeWidth="1.2" opacity="0.5" />
-                  <line x1="144" y1="47" x2="144" y2="184" stroke="#059669" strokeWidth="1.2" opacity="0.5" />
-
-                  {/* Floor 3 (Top Floor) */}
-                  <rect x="56" y="60" width="24" height="20" rx="2.5" fill="url(#p-win-warm)" />
-                  <line x1="68" y1="60" x2="68" y2="80" stroke="rgba(255,255,255,0.6)" strokeWidth="0.8" />
-                  <rect x="88" y="60" width="24" height="20" rx="2.5" fill="url(#p-win-warm)" />
-                  <line x1="100" y1="60" x2="100" y2="80" stroke="rgba(255,255,255,0.6)" strokeWidth="0.8" />
-                  <line x1="48" y1="88" x2="136" y2="88" stroke="#CBD5E1" strokeWidth="1" />
-
-                  {/* Floor 2 (Middle Floor) */}
-                  <rect x="56" y="96" width="24" height="20" rx="2.5" fill="url(#p-win-warm)" />
-                  <line x1="68" y1="96" x2="68" y2="116" stroke="rgba(255,255,255,0.6)" strokeWidth="0.8" />
-                  <rect x="88" y="96" width="24" height="20" rx="2.5" fill="url(#p-win-mint)" />
-                  <line x1="100" y1="96" x2="100" y2="116" stroke="rgba(255,255,255,0.6)" strokeWidth="0.8" />
-                  {/* Cantilever balcony */}
-                  <rect x="54" y="108" width="28" height="10" rx="2" fill="rgba(255,255,255,0.3)" stroke="#94A3B8" strokeWidth="0.8" />
-                  <line x1="48" y1="124" x2="136" y2="124" stroke="#CBD5E1" strokeWidth="1" />
-
-                  {/* Floor 1 (Ground Entrance) */}
-                  <rect x="56" y="132" width="20" height="22" rx="2" fill="url(#p-win-warm)" />
-                  {/* Modern Glass Entrance Door */}
-                  <rect x="86" y="130" width="28" height="30" rx="3" fill="#0F172A" opacity="0.85" />
-                  <rect x="88" y="132" width="24" height="26" rx="2" fill="url(#p-win-warm)" opacity="0.9" />
-                  <line x1="100" y1="132" x2="100" y2="158" stroke="#1E293B" strokeWidth="1" />
-                  <rect x="98" y="144" width="1" height="4" rx="0.5" fill="#10B981" />
-                  <rect x="101" y="144" width="1" height="4" rx="0.5" fill="#10B981" />
-                  {/* Canopy */}
-                  <rect x="82" y="128" width="36" height="2.5" rx="1" fill="#047857" />
-
-                  {/* Building Base Shadow */}
-                  <ellipse cx="92" cy="194" rx="44" ry="5" fill="rgba(0,30,10,0.30)" />
-                </g>
-
-                {/* ── 3. MAIN HERO: KOSFINDER OWNER DASHBOARD CARD (Foreground) ── */}
+                {/* ── KOSFINDER OWNER DASHBOARD CARD ── */}
                 <g filter="url(#p-shadow)">
                   {/* Card Background */}
                   <rect x="108" y="58" width="214" height="166" rx="14" fill="#FFFFFF" stroke="rgba(226,232,240,0.9)" strokeWidth="1" />
@@ -1145,30 +1046,6 @@ export default function HomePage() {
                     <rect width="19" height="18" rx="3.5" fill="#FFFFFF" stroke="#10B981" strokeWidth="0.8" strokeDasharray="2,1.5" />
                     <text x="9.5" y="12" textAnchor="middle" fill="#059669" fontSize="7" fontWeight="700" fontFamily="Inter, sans-serif">08</text>
                   </g>
-                </g>
-
-                {/* ── 4. SUPPORTING FLOATING CHIPS (Only 2 Clean Elements) ── */}
-                {/* Chip 1: Top-Right — "Kos Terverifikasi" */}
-                <g transform="translate(210, 36)">
-                  <rect x="1" y="1" width="98" height="24" rx="12" fill="rgba(0,30,10,0.30)" />
-                  <rect x="0" y="0" width="98" height="24" rx="12" fill="rgba(6,78,59,0.92)" stroke="rgba(167,243,208,0.50)" strokeWidth="1" />
-                  <circle cx="12" cy="12" r="6.5" fill="#10B981" />
-                  <path d="M9 12 L11 14 L15 10" stroke="#FFFFFF" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                  <text x="23" y="15" fill="#FFFFFF" fontSize="8" fontWeight="700" fontFamily="Inter, sans-serif">
-                    Kos Terverifikasi
-                  </text>
-                </g>
-
-                {/* Chip 2: Bottom-Left — "8 Kamar Terisi" */}
-                <g transform="translate(36, 188)">
-                  <rect x="1" y="1" width="92" height="24" rx="12" fill="rgba(0,30,10,0.25)" />
-                  <rect x="0" y="0" width="92" height="24" rx="12" fill="#FFFFFF" stroke="#E2E8F0" strokeWidth="0.8" />
-                  <circle cx="12" cy="12" r="6.5" fill="#ECFDF5" />
-                  {/* Mini key icon */}
-                  <path d="M10 11 A2.2 2.2 0 1 0 12.2 8.8 L15 11.6 V13 H13.6 V12.2 Z" stroke="#059669" strokeWidth="1" fill="none" />
-                  <text x="22" y="15" fill="#0F172A" fontSize="8" fontWeight="700" fontFamily="Inter, sans-serif">
-                    8 Kamar Terisi
-                  </text>
                 </g>
               </svg>
             </div>
