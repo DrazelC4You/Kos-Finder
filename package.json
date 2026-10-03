@@ -9,8 +9,8 @@
     "client:dev": "npm run --prefix client dev",
     "server:start": "npm run --prefix server start",
     "client:build": "npm run --prefix client build",
-    "install:all": "npm install && npm run --prefix server install && npm run --prefix client install",
-    "build": "npm run --prefix server install && npm run --prefix server prisma:generate && npm run --prefix client install && npm run --prefix client build",
+    "install:all": "npm install && npm install --prefix server --include=dev && npm install --prefix client --include=dev",
+    "build": "npm install --prefix server --include=dev && npm run --prefix server prisma:generate && npm install --prefix client --include=dev && npm run --prefix client build",
     "start": "npm run --prefix server start:prod"
   },
   "devDependencies": {
