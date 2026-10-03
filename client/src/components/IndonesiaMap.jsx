@@ -34,6 +34,24 @@ import {
 const DOT_COLOR = '#0f766e';      // teal-700 — kepulauan luar, halus
 const JAVA_DOT_COLOR = '#047857'; // emerald-700 — Jawa, sedikit lebih tegas
 
+// Grid hasil generate melar vertikal ±1.7x terhadap Indonesia sebenarnya:
+// viewBox 1000x397.97 (2.51:1) padahal geografi hanya membentang 324 unit
+// (3.09:1), aslinya ~5:1. Melarnya bikin band Jawa duduk di 69-84% tinggi peta,
+// sehingga setiap kali peta dibuat full-bleed ia selalu jatuh ke belakang
+// search card. Dipadatkan pada level koordinat path — bukan lewat
+// transform="scale(1, k)" — karena scale non-uniform memipihkan ujung round-cap
+// menjadi elips dan dot berubah jadi garis pendek.
+const Y_SQUASH = 0.62;
+const VIEW = { w: MAP_VIEW.width, h: +(MAP_VIEW.height * Y_SQUASH).toFixed(2) };
+
+// Data path hanya berisi pasangan "M x y H x2"; perintah H memakai y aktif,
+// jadi cukup memetakan ulang angka y pada setiap M.
+const squashRows = (rows) => (rows || []).map((d) =>
+  d.replace(/M(-?[\d.]+) (-?[\d.]+)/g, (_, x, y) => `M${x} ${(+y * Y_SQUASH).toFixed(2)}`)
+);
+const JAVA_ROWS = squashRows(JAVA_ROW_PATHS);
+const OTHER_ROWS = squashRows(OTHER_ROW_PATHS || DOT_ROW_PATHS);
+
 // Tekstur desktop di-tuning pada lebar ~1024px. SVG diskalakan dari viewBox
 // 1000 units, jadi di layar lebar dot & marker ikut membesar (1920px = 1.92x).
 // Faktor ini menurunkannya lagi supaya ukuran DAN kerapatan dot tetap sama.
@@ -116,13 +134,14 @@ export default function IndonesiaMap({
     const byName = new Map();
     activeLocations.forEach((loc) => {
       if (!loc || typeof loc.lat !== 'number' || typeof loc.lng !== 'number') return;
-      byName.set(loc.name, { ...loc, ...projectLatLng(loc.lat, loc.lng) });
+      const p = projectLatLng(loc.lat, loc.lng);
+      byName.set(loc.name, { ...loc, x: p.x, y: +(p.y * Y_SQUASH).toFixed(2) });
     });
     return byName;
   }, [activeLocations]);
 
-  // ViewBox selalu proporsional penuh nusantara (1000 x 397.97) tanpa crop agresif
-  const vb = { x: 0, y: 0, w: MAP_VIEW.width, h: MAP_VIEW.height };
+  // ViewBox sudah dipadatkan bersama seluruh geometri (lihat Y_SQUASH).
+  const vb = { x: 0, y: 0, w: VIEW.w, h: VIEW.h };
 
   // Pada mobile: koneksi 3 segmen halus sepanjang Jawa–Bali
   const activeConnections = useMemo(() => {
@@ -187,11 +206,11 @@ export default function IndonesiaMap({
       >
         {/* Desktop only: aura Jawa lembut */}
         {!isMobile && (
-          <ellipse cx="355" cy="305" rx="125" ry="32" fill="url(#java-aura)" />
+          <ellipse cx="355" cy={+(305 * Y_SQUASH).toFixed(2)} rx="125" ry={+(32 * Y_SQUASH).toFixed(2)} fill="url(#java-aura)" />
         )}
 
         {/* Kepulauan luar: Sumatra, Kalimantan, Sulawesi, Maluku, Papua */}
-        {(OTHER_ROW_PATHS || DOT_ROW_PATHS).map((d, i) => (
+        {OTHER_ROWS.map((d, i) => (
           <path
             key={`other-${i}`}
             d={d}
@@ -205,7 +224,7 @@ export default function IndonesiaMap({
         ))}
 
         {/* Pulau Jawa + Bali: aksen hijau KosFinder, sedikit lebih tegas tapi tetap menyatu */}
-        {(JAVA_ROW_PATHS || []).map((d, i) => (
+        {JAVA_ROWS.map((d, i) => (
           <path
             key={`java-${i}`}
             d={d}
@@ -222,7 +241,7 @@ export default function IndonesiaMap({
         {!isMobile && (
           <rect
             x="0" y="0"
-            width={MAP_VIEW.width} height={MAP_VIEW.height}
+            width={VIEW.w} height={VIEW.h}
             fill="url(#hero-center-mask)"
             opacity="0.9"
           />
@@ -232,7 +251,7 @@ export default function IndonesiaMap({
         {isMobile && (
           <rect
             x="0" y="0"
-            width={MAP_VIEW.width} height={MAP_VIEW.height}
+            width={VIEW.w} height={VIEW.h}
             fill="url(#mobile-center-mask)"
           />
         )}
@@ -299,7 +318,7 @@ export default function IndonesiaMap({
           {showLabels && !isMobile && (
             <text
               x={p.x}
-              y={p.y + (p.labelSide === 'above' ? -12 : (p.labelDy ?? 22))}
+              y={p.y + (p.labelSide === 'above' ? -12 : (p.labelDy ?? 22)) * Y_SQUASH}
               textAnchor="middle"
               fontSize={11.5 * dotScale}
               fontWeight={600}
