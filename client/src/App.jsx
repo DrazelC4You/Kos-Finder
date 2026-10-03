@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
-import { Home, Heart, Shield, LogIn, UserPlus, LogOut, Building, MessageSquare, Menu, X } from 'lucide-react';
+import { Home, Heart, Shield, LogIn, UserPlus, LogOut, Building, MessageSquare, Search, LayoutGrid, X } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import NotificationBell from './components/NotificationBell.jsx';
 import RouteFallback from './components/RouteFallback.jsx';
@@ -28,7 +28,6 @@ function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [openNav, setOpenNav] = useState(false);
-  const menuBtnRef = useRef(null);
   const panelRef = useRef(null);
 
   const handleLogout = async () => {
@@ -68,12 +67,23 @@ function Navbar() {
     const onKeyDown = (e) => {
       if (e.key === 'Escape') {
         setOpenNav(false);
-        menuBtnRef.current?.focus();
       }
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [openNav]);
+
+  // Bar bawah: tiga tujuan + satu pembuka menu. Label sengaja lebih pendek
+  // dari navItems karena tiap sel cuma punya ~90px di lebar 390px.
+  const primaryItems = [
+    { key: 'beranda', to: '/', label: 'Beranda', icon: Home, active: (p) => p === '/' },
+    { key: 'cari', to: '/cari', label: 'Cari Kos', icon: Search, active: (p) => p.startsWith('/cari') || p.startsWith('/kos/') },
+    isAuthenticated
+      ? { key: 'chat', to: '/chat', label: 'Chat', icon: MessageSquare, active: (p) => p.startsWith('/chat') }
+      : { key: 'pemilik', to: '/untuk-pemilik', label: 'Pemilik', icon: Building, active: (p) => p.startsWith('/untuk-pemilik') || p.startsWith('/tentang') },
+    { key: 'menu', label: 'Menu', icon: LayoutGrid }
+  ];
+  const pillIndex = openNav ? 3 : primaryItems.findIndex((item) => item.active?.(location.pathname));
 
   return (
     <>
@@ -156,62 +166,164 @@ function Navbar() {
             </div>
           )}
 
-          {/* Hamburger — satu-satunya cara navigasi di bawah lg */}
-          <button
-            ref={menuBtnRef}
-            type="button"
-            onClick={() => setOpenNav((v) => !v)}
-            aria-expanded={openNav}
-            aria-haspopup="true"
-            aria-controls={openNav ? 'mobile-nav' : undefined}
-            aria-label="Buka navigasi"
-            className="lg:hidden p-2 -mr-2 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
         </div>
       </div>
     </header>
 
-    {/* Sheet mobile. Sengaja sibling setelah </header>, bukan anak dari header:
-        header adalah sticky z-50 sehingga membuat stacking context sendiri —
-        sheet di dalamnya akan tetap bernilai 50 di root dan kalah oleh overlay
-        level halaman (drawer filter SearchPage, modal dashboard). */}
+    {/* Bar navigasi bawah melayang. Sengaja sibling setelah </header>, bukan
+        anak dari header: header sticky z-50 membuat stacking context sendiri.
+        z-40 supaya modal dan drawer filter (z-50) tetap menutupinya. */}
+    <nav aria-label="Navigasi utama" className="fixed inset-x-0 bottom-0 z-40 lg:hidden">
+      <div className="animate-nav-bar mx-3 mb-3 rounded-2xl border border-white/70 bg-white/75 backdrop-blur-xl shadow-[0_-2px_28px_rgba(15,23,42,0.12)]">
+        <div className="relative grid grid-cols-4 py-2">
+          <span
+            aria-hidden="true"
+            className="nav-pill absolute top-2 bottom-2 left-0 w-1/4"
+            style={{ transform: `translateX(${Math.max(0, pillIndex) * 100}%)`, opacity: pillIndex < 0 ? 0 : 1 }}
+          >
+            <span className="block h-full mx-1.5 rounded-xl bg-emerald-600/10 ring-1 ring-inset ring-emerald-600/25" />
+          </span>
+
+          {primaryItems.map((item, idx) => {
+            const Icon = item.icon;
+            const isActive = idx === pillIndex;
+            const cls = `relative z-10 flex flex-col items-center gap-1 py-1.5 text-[10px] font-semibold transition-transform duration-150 active:scale-90 ${
+              isActive ? 'text-emerald-700' : 'text-slate-500'
+            }`;
+            return item.to ? (
+              <Link
+                key={item.key}
+                to={item.to}
+                aria-current={isActive ? 'page' : undefined}
+                className={cls}
+              >
+                <Icon className="w-5 h-5" />
+                <span>{item.label}</span>
+              </Link>
+            ) : (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => setOpenNav((v) => !v)}
+                aria-expanded={openNav}
+                aria-controls="mobile-nav"
+                aria-label="Buka menu navigasi"
+                className={cls}
+              >
+                <Icon className="w-5 h-5" />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </nav>
+
     {openNav && (
       <div className="fixed inset-0 z-[60] lg:hidden">
-        <div className="absolute inset-0 bg-black/50" onClick={() => setOpenNav(false)} aria-hidden="true" />
+        <div
+          className="animate-backdrop absolute inset-0 bg-slate-900/45"
+          onClick={() => setOpenNav(false)}
+          aria-hidden="true"
+        />
         <div
           ref={panelRef}
           id="mobile-nav"
           role="dialog"
           aria-modal="true"
-          aria-label="Navigasi utama"
+          aria-label="Menu navigasi"
           tabIndex={-1}
-          className="absolute right-0 top-0 h-full w-full max-w-xs bg-white p-6 shadow-2xl flex flex-col gap-1 overflow-y-auto overscroll-contain focus:outline-none"
+          className="animate-sheet-up absolute inset-x-0 bottom-0 max-h-[80vh] overflow-y-auto overscroll-contain rounded-t-3xl bg-white shadow-[0_-8px_40px_rgba(15,23,42,0.25)] focus:outline-none"
         >
-          <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
-            <span className="font-heading font-bold text-slate-900 text-base">Navigasi</span>
-            <button
-              type="button"
-              onClick={() => setOpenNav(false)}
-              aria-label="Tutup navigasi"
-              className="p-2 -mr-2 text-slate-400 hover:text-slate-600 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+          <div className="sticky top-0 z-10 bg-white/95 backdrop-blur pt-3 px-5 pb-3 border-b border-slate-100">
+            <div className="w-10 h-1 rounded-full bg-slate-200 mx-auto mb-3" aria-hidden="true" />
+            <div className="flex items-center justify-between">
+              <span className="font-heading font-bold text-slate-900 text-base">Menu</span>
+              <button
+                type="button"
+                onClick={() => setOpenNav(false)}
+                aria-label="Tutup menu"
+                className="p-2 -mr-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
-          {navItems.map(({ to, label, icon: Icon, iconClass, linkClass = '' }) => (
-            <Link
-              key={to}
-              to={to}
-              onClick={() => setOpenNav(false)}
-              className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-emerald-700 transition-colors ${linkClass}`}
-            >
-              {Icon && <Icon className={`w-4 h-4 ${iconClass || ''}`} />}
-              <span>{label}</span>
-            </Link>
-          ))}
+          <div className="px-5 py-4 border-b border-slate-100">
+            {isAuthenticated ? (
+              <div className="flex items-center gap-3">
+                <img
+                  src={user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.name)}`}
+                  alt={user.name}
+                  className="w-11 h-11 rounded-full bg-slate-100 object-cover"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-slate-900 truncate">{user.name}</p>
+                  <p className="text-[11px] font-semibold text-emerald-700 uppercase">
+                    {isOwner ? 'Pemilik Kos' : isTenant ? 'Pencari Kos' : 'Admin'}
+                  </p>
+                </div>
+                <Link
+                  to={getDashboardPath()}
+                  onClick={() => setOpenNav(false)}
+                  className="text-xs font-semibold text-slate-600 hover:text-emerald-700 whitespace-nowrap"
+                >
+                  Dashboard
+                </Link>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/login"
+                  onClick={() => setOpenNav(false)}
+                  className="flex-1 py-2.5 rounded-xl border border-slate-200 text-center text-xs font-semibold text-slate-700"
+                >
+                  Masuk
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={() => setOpenNav(false)}
+                  className="flex-1 py-2.5 rounded-xl bg-emerald-600 text-center text-xs font-semibold text-white"
+                >
+                  Daftar
+                </Link>
+              </div>
+            )}
+          </div>
+
+          <nav className="p-3 space-y-0.5">
+            {navItems.map(({ to, label, icon: Icon, iconClass, linkClass = '' }, idx) => (
+              <Link
+                key={to}
+                to={to}
+                onClick={() => setOpenNav(false)}
+                className={`animate-sheet-item flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-emerald-700 transition-colors ${linkClass}`}
+                style={{ animationDelay: `${60 + idx * 26}ms` }}
+              >
+                {Icon ? (
+                  <Icon className={`w-4 h-4 ${iconClass || 'text-slate-400'}`} />
+                ) : (
+                  <span className="w-4 h-4" aria-hidden="true" />
+                )}
+                <span>{label}</span>
+              </Link>
+            ))}
+          </nav>
+
+          {isAuthenticated && (
+            <div className="px-3 pb-6">
+              <button
+                type="button"
+                onClick={() => { setOpenNav(false); handleLogout(); }}
+                style={{ animationDelay: `${60 + navItems.length * 26}ms` }}
+                className="animate-sheet-item flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Keluar</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
       )}
@@ -277,7 +389,7 @@ export default function App() {
             </Suspense>
           </RouteErrorBoundary>
         </main>
-        <footer className="bg-white border-t border-slate-200 py-8 text-center text-xs text-slate-500">
+        <footer className="bg-white border-t border-slate-200 pt-8 pb-28 lg:pb-8 text-center text-xs text-slate-500">
           <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2 font-heading font-extrabold text-base text-slate-900">
               <span className="text-emerald-600">KosFinder</span>

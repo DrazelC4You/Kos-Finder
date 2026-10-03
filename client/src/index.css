@@ -114,6 +114,45 @@
     opacity: 0;
   }
 
+  /* === Bottom navigation mobile (Navbar di App.jsx) === */
+  @keyframes navBarIn {
+    0%   { opacity: 0; transform: translateY(18px) scale(0.98); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .animate-nav-bar {
+    animation: navBarIn 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes sheetUp {
+    0%   { transform: translateY(100%); }
+    100% { transform: translateY(0); }
+  }
+  .animate-sheet-up {
+    animation: sheetUp 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes backdropIn {
+    0%   { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  .animate-backdrop {
+    animation: backdropIn 200ms ease-out both;
+  }
+
+  @keyframes sheetItemIn {
+    0%   { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .animate-sheet-item {
+    animation: sheetItemIn 260ms ease-out both;
+  }
+
+  /* Penanda rute aktif digeser lewat transform (bukan dipasang ulang di sel
+     lain) supaya pindah antar tab terasa mengalir, bukan berkedip. */
+  .nav-pill {
+    transition: transform 340ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease-out;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .animate-headline-in-right,
     .animate-headline-in-left {
@@ -129,6 +168,15 @@
     }
     .kos-map-pulse {
       animation: none;
+    }
+    .animate-nav-bar,
+    .animate-sheet-up,
+    .animate-backdrop,
+    .animate-sheet-item {
+      animation: none;
+    }
+    .nav-pill {
+      transition: none;
     }
   }
 }
