@@ -28,6 +28,9 @@ const OwnerDashboardPage = lazy(() => import('./pages/OwnerDashboardPage.jsx'));
 const ChatPage = lazy(() => import('./pages/ChatPage.jsx'));
 const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage.jsx'));
 
+// Dibakar saat build. Kalau kosong, baris email dukungan tidak dirender di footer.
+const SUPPORT_EMAIL = import.meta.env.VITE_SUPPORT_EMAIL || '';
+
 // Isi sheet "Menu": khusus tujuan yang TIDAK ada di bar bawah. `countKey`
 // merujuk ke field stats dari dasbor peran yang bersangkutan, jadi angkanya
 // berasal dari data nyata — bukan hiasan.
@@ -525,13 +528,56 @@ export default function App() {
             </Suspense>
           </RouteErrorBoundary>
         </main>
-        <footer className="bg-white border-t border-slate-200 pt-8 pb-28 lg:pb-8 text-center text-xs text-slate-500">
-          <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-2 font-heading font-extrabold text-base text-slate-900">
-              <span className="text-emerald-600">KosFinder</span>
-              <span className="text-slate-400 font-normal">| Temukan Tempat Tinggal yang Tepat</span>
+        <footer className="bg-white border-t border-slate-200 pt-12 pb-28 lg:pb-10">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-9 pb-10 sm:grid-cols-12">
+              <div className="col-span-2 sm:col-span-6">
+                <Link to="/" className="inline-flex items-center gap-2">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-600 text-white">
+                    <Home className="w-4 h-4" />
+                  </span>
+                  <span className="font-heading font-extrabold text-base text-slate-900">
+                    Kos<span className="text-emerald-600">Finder</span>
+                  </span>
+                </Link>
+                <p className="mt-3 max-w-sm text-sm leading-relaxed text-slate-500">
+                  Platform pencarian dan pengelolaan kos: listing terverifikasi, harga transparan,
+                  dan komunikasi langsung dengan pemilik properti.
+                </p>
+              </div>
+
+              <div className="sm:col-span-3">
+                <p className="text-xs font-semibold text-slate-900 mb-3">Jelajah</p>
+                <ul className="space-y-2 text-sm">
+                  <li><Link to="/cari" className="text-slate-500 hover:text-emerald-700 transition-colors">Cari Kos</Link></li>
+                  <li><Link to="/untuk-pemilik" className="text-slate-500 hover:text-emerald-700 transition-colors">Untuk Pemilik</Link></li>
+                  <li><Link to="/register" className="text-slate-500 hover:text-emerald-700 transition-colors">Daftar Akun</Link></li>
+                </ul>
+              </div>
+
+              <div className="sm:col-span-3">
+                <p className="text-xs font-semibold text-slate-900 mb-3">Bantuan</p>
+                <ul className="space-y-2 text-sm">
+                  <li><Link to="/tentang" className="text-slate-500 hover:text-emerald-700 transition-colors">Tentang KosFinder</Link></li>
+                  <li><Link to="/login" className="text-slate-500 hover:text-emerald-700 transition-colors">Masuk</Link></li>
+                  {SUPPORT_EMAIL && (
+                    <li>
+                      <a
+                        href={`mailto:${SUPPORT_EMAIL}`}
+                        className="text-slate-500 hover:text-emerald-700 transition-colors"
+                      >
+                        {SUPPORT_EMAIL}
+                      </a>
+                    </li>
+                  )}
+                </ul>
+              </div>
             </div>
-            <p>© 2026 KosFinder Platform. Dibuat dengan arsitektur Full-Stack modular.</p>
+
+            <div className="flex flex-col gap-2 border-t border-slate-100 pt-6 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+              <p>© {new Date().getFullYear()} KosFinder. Seluruh hak cipta dilindungi.</p>
+              <p>Harga dan ketersediaan kamar ditampilkan apa adanya dari pemilik properti.</p>
+            </div>
           </div>
         </footer>
       </div>
