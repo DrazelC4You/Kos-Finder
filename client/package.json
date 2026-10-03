@@ -9,7 +9,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate:map": "node scripts/generate-indonesia-map.mjs"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.3.3",

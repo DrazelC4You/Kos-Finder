@@ -24,8 +24,6 @@ import React, { useMemo } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import {
   DOT_ROW_PATHS,
-  JAVA_ROW_PATHS,
-  OTHER_ROW_PATHS,
   MAP_PITCH,
   MAP_VIEW,
   projectLatLng,
@@ -49,8 +47,33 @@ const VIEW = { w: MAP_VIEW.width, h: +(MAP_VIEW.height * Y_SQUASH).toFixed(2) };
 const squashRows = (rows) => (rows || []).map((d) =>
   d.replace(/M(-?[\d.]+) (-?[\d.]+)/g, (_, x, y) => `M${x} ${(+y * Y_SQUASH).toFixed(2)}`)
 );
-const JAVA_ROWS = squashRows(JAVA_ROW_PATHS);
-const OTHER_ROWS = squashRows(OTHER_ROW_PATHS || DOT_ROW_PATHS);
+
+// Segmen yang jatuh di kotak Jawa (+ Madura/Bali) digambar dengan warna lebih
+// tegas. Pemisahan ini logika visual, jadi dihitung di komponen: file data
+// hasil `npm run generate:map` hanya berisi geometri mentah sehingga proses
+// regenerasi tidak pernah menimpa kode tulisan tangan.
+const splitByJavaBounds = (rows) => {
+  const java = [];
+  const other = [];
+  for (const pathStr of rows) {
+    let jRow = '';
+    let oRow = '';
+    for (const part of pathStr.match(/M[\d.]+ [\d.]+H[\d.]+/g) || []) {
+      const m = part.match(/M([\d.]+) ([\d.]+)H([\d.]+)/);
+      if (!m) continue;
+      const [, x1, y, x2] = m;
+      if (+y >= 268 && +y <= 345 && +x1 >= 240 && +x2 <= 470) jRow += part;
+      else oRow += part;
+    }
+    if (jRow) java.push(jRow);
+    if (oRow) other.push(oRow);
+  }
+  return { java, other };
+};
+
+const { java: JAVA_ROWS_RAW, other: OTHER_ROWS_RAW } = splitByJavaBounds(DOT_ROW_PATHS);
+const JAVA_ROWS = squashRows(JAVA_ROWS_RAW);
+const OTHER_ROWS = squashRows(OTHER_ROWS_RAW);
 
 // Tekstur desktop di-tuning pada lebar ~1024px. SVG diskalakan dari viewBox
 // 1000 units, jadi di layar lebar dot & marker ikut membesar (1920px = 1.92x).
