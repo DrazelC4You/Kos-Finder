@@ -78,7 +78,7 @@ function Navbar() {
   return (
     <>
     <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
-      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
         {/* Brand Logo */}
         <Link to="/" className="flex items-center gap-2 font-heading font-extrabold text-xl text-slate-900">
           <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shadow-sm shadow-emerald-600/20">
@@ -278,7 +278,7 @@ export default function App() {
           </RouteErrorBoundary>
         </main>
         <footer className="bg-white border-t border-slate-200 py-8 text-center text-xs text-slate-500">
-          <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2 font-heading font-extrabold text-base text-slate-900">
               <span className="text-emerald-600">KosFinder</span>
               <span className="text-slate-400 font-normal">| Temukan Tempat Tinggal yang Tepat</span>
