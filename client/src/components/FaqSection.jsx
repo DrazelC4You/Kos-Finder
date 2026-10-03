@@ -18,7 +18,7 @@ const FaqSection = React.forwardRef((props, ref) => {
     <section
       ref={ref}
       className={cn(
-        'py-16 w-full bg-gradient-to-b from-transparent via-muted/50 to-transparent',
+        'py-16 w-full bg-muted/40',
         className
       )}
       {...rest}
@@ -31,7 +31,9 @@ const FaqSection = React.forwardRef((props, ref) => {
           transition={{ duration: 0.5 }}
           className="max-w-2xl mx-auto text-center mb-12"
         >
-          <h2 className="text-3xl font-semibold mb-3 bg-gradient-to-r from-foreground via-foreground/80 to-foreground bg-clip-text text-transparent">
+          {/* Tailwind 3 tidak bisa membangun gradient stop dari warna token
+              (from-foreground menghasilkan rgba(0,0,0,0)), jadi judulnya warna solid. */}
+          <h2 className="text-3xl font-semibold mb-3 text-foreground">
             {title}
           </h2>
           {description && (
@@ -104,7 +106,7 @@ const FaqItem = React.forwardRef((props, ref) => {
         'transition-all duration-200 ease-in-out',
         'border border-border/50',
         isOpen
-          ? 'bg-gradient-to-br from-background via-muted/50 to-background'
+          ? 'bg-muted/50'
           : 'hover:bg-muted/50'
       )}
     >
