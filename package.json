@@ -2,6 +2,9 @@
   "name": "kosfinder",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "description": "KosFinder - Marketplace Pencarian dan Pengelolaan Kos",
   "scripts": {
     "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",

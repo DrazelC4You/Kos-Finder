@@ -7,6 +7,9 @@ services:
   - type: web
     name: kosfinder
     runtime: node
+    # Prisma 5.22 hanya diuji sampai Node 22; tanpa pin ini Render mengambil
+    # versi default terbaru dan query engine-nya bisa tidak cocok.
+    version: 22
     plan: free
     buildCommand: npm run build
     startCommand: npm start
