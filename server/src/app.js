@@ -13,8 +13,30 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 
-// Security HTTP headers
-app.use(helmet());
+// Render mengakhiri TLS di edge-nya, jadi Express harus percaya satu proxy di
+// depan. Tanpa ini express-rate-limit melihat semua pengunjung sebagai satu IP
+// dan kuota 200/15 menit habis untuk orang pertama.
+app.set('trust proxy', 1);
+
+// Security HTTP headers. CSP butuh daftar host eksplisit karena default helmet
+// hanya mengizinkan img-src 'self' data: — itu memblokir tile peta, foto
+// fallback, dan avatar. Ganti VITE_MAP_TILE_URL = ganti juga daftar img-src.
+// Turnstile butuh script + frame dari challenges.cloudflare.com.
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            imgSrc: [
+                "'self'",
+                'data:',
+                'https://*.tile.openstreetmap.org',
+                'https://images.unsplash.com',
+                'https://api.dicebear.com',
+            ],
+            scriptSrc: ["'self'", 'https://challenges.cloudflare.com'],
+            frameSrc: ['https://challenges.cloudflare.com'],
+        },
+    },
+}));
 
 // CORS Configuration
 const allowedOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
