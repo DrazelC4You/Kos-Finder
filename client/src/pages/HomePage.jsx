@@ -449,6 +449,7 @@ export default function HomePage() {
               options={PRICE_OPTIONS}
               placeholder="Semua Harga"
               menuWidth="w-full sm:w-[220px]"
+              className="px-4 py-2 sm:border-r border-slate-200"
             />
 
             {/* Input Tipe Kos */}
@@ -461,6 +462,7 @@ export default function HomePage() {
               options={TYPE_OPTIONS}
               placeholder="Semua Tipe"
               menuWidth="w-full sm:w-[200px]"
+              className="px-4 py-2 sm:border-r border-slate-200"
             />
 
             {/* Tombol Submit */}

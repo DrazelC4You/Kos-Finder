@@ -6,11 +6,12 @@ import {
   Key, Loader2, Save, X, Eye,
   Star, CornerDownRight, MessageCircle, CreditCard, Wallet,
   TrendingUp, CircleX, BadgeCheck,
-  FileText, Receipt, ImagePlus, Link2, MailWarning
+  FileText, Receipt, ImagePlus, Link2, MailWarning, RefreshCw
 } from 'lucide-react';
 import api from '../services/api.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { formatRupiah } from '../components/KosCard.jsx';
+import SearchDropdown from '../components/SearchDropdown.jsx';
 import RentalAgreementModal from '../components/RentalAgreementModal.jsx';
 import OfficialInvoiceModal from '../components/OfficialInvoiceModal.jsx';
 
@@ -19,6 +20,14 @@ const ALL_FACILITIES = [
   'Meja & Kursi', 'Parkir Motor', 'Parkir Mobil', 'Dapur Bersama',
   'Akses 24 Jam', 'CCTV', 'Mesin Cuci'
 ];
+
+// Satu-satunya sumber tampilan status kamar. Tombolnya sekaligus jadi aksi
+// mengubah status, jadi tidak perlu kontrol kedua di kartu yang sama.
+const ROOM_STATUS_META = {
+  AVAILABLE: { label: 'Kosong / siap sewa', cls: 'border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100', dot: 'bg-emerald-500' },
+  OCCUPIED: { label: 'Terisi penghuni', cls: 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100', dot: 'bg-slate-400' },
+  MAINTENANCE: { label: 'Sedang perbaikan', cls: 'border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100', dot: 'bg-amber-500' }
+};
 
 export default function OwnerDashboardPage() {
   const { user, isAuthenticated, isOwner, isAdmin, loading: authLoading } = useAuth();
@@ -530,35 +539,30 @@ export default function OwnerDashboardPage() {
       )}
 
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 rounded-3xl p-6 sm:p-8 text-white mb-8 shadow-sm relative overflow-hidden">
-        <div className="absolute right-0 top-0 translate-x-10 -translate-y-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+      <div className="bg-slate-900 rounded-2xl p-6 sm:p-8 text-white mb-8">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold mb-3 border border-emerald-500/30 backdrop-blur-sm">
-              <Building className="w-3.5 h-3.5" />
-              <span>Portal Pengelolaan Pemilik Kos</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-heading font-extrabold tracking-tight text-white">
-              Halo, {user?.name || 'Pemilik Kos'}! 🏢
+            <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-white">
+              Halo, {user?.name || 'Pemilik Kos'}
             </h1>
-            <p className="text-slate-300 text-xs sm:text-sm mt-1 max-w-xl">
-              Kelola listing properti, kamar kos, konfirmasi booking penyewa, dan pantau performa okupansi bisnis Anda.
+            <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-300">
+              Kelola listing properti, kamar kos, konfirmasi booking penyewa, dan pantau okupansi.
             </p>
           </div>
-          <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="grid grid-cols-2 gap-2.5 sm:flex sm:items-center">
             <Link
               to="/chat"
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl border border-white/20 shadow-sm transition-all"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg border border-white/20 bg-white/10 text-xs font-semibold text-white hover:bg-white/20 transition-colors"
             >
               <MessageSquare className="w-4 h-4 text-emerald-300" />
               <span>Pesan & Chat</span>
             </Link>
             <button
               onClick={openAddKosModal}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-emerald-600 text-xs font-semibold text-white hover:bg-emerald-500 transition-colors"
             >
               <Plus className="w-4 h-4" />
-              <span>Tambah Kos Baru</span>
+              <span>Tambah Kos</span>
             </button>
           </div>
         </div>
@@ -589,13 +593,13 @@ export default function OwnerDashboardPage() {
       )}
 
       {/* Stats Overview Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
         <div
           onClick={() => setActiveTab('kos')}
-          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-emerald-400 hover:shadow transition-all cursor-pointer"
+          className="bg-white p-5 rounded-2xl border border-slate-200 hover:border-emerald-400 transition-colors cursor-pointer"
         >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Kos</span>
+            <span className="text-xs font-medium text-slate-500">Total Kos</span>
             <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <Building className="w-4 h-4" />
             </div>
@@ -606,10 +610,10 @@ export default function OwnerDashboardPage() {
 
         <div
           onClick={() => setActiveTab('kamar')}
-          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-blue-400 hover:shadow transition-all cursor-pointer"
+          className="bg-white p-5 rounded-2xl border border-slate-200 hover:border-blue-400 transition-colors cursor-pointer"
         >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Kamar</span>
+            <span className="text-xs font-medium text-slate-500">Total Kamar</span>
             <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
               <Bed className="w-4 h-4" />
             </div>
@@ -618,9 +622,9 @@ export default function OwnerDashboardPage() {
           <p className="text-[11px] text-blue-600 font-semibold mt-1">{stats.availableRooms} kamar kosong</p>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tingkat Okupansi</span>
+            <span className="text-xs font-medium text-slate-500">Tingkat Okupansi</span>
             <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
               <Key className="w-4 h-4" />
             </div>
@@ -631,9 +635,9 @@ export default function OwnerDashboardPage() {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Est. Pendapatan</span>
+            <span className="text-xs font-medium text-slate-500">Est. Pendapatan</span>
             <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
               <DollarSign className="w-4 h-4" />
             </div>
@@ -646,10 +650,10 @@ export default function OwnerDashboardPage() {
 
         <div
           onClick={() => { setActiveTab('booking'); setBookingFilter('PENDING'); }}
-          className="col-span-2 lg:col-span-1 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-amber-400 hover:shadow transition-all cursor-pointer"
+          className="col-span-2 sm:col-span-2 lg:col-span-1 bg-white p-5 rounded-2xl border border-slate-200 hover:border-amber-400 transition-colors cursor-pointer"
         >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Booking Baru</span>
+            <span className="text-xs font-medium text-slate-500">Booking Baru</span>
             <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
               <Clock className="w-4 h-4" />
             </div>
@@ -657,35 +661,39 @@ export default function OwnerDashboardPage() {
           <div className="text-2xl font-heading font-extrabold text-amber-600 flex items-center gap-2">
             <span>{loading ? '...' : stats.pendingBookings}</span>
             {stats.pendingBookings > 0 && (
-              <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold uppercase">Perlu Respon</span>
+              <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-semibold">Perlu respon</span>
             )}
           </div>
           <p className="text-[11px] text-slate-400 mt-1">Menunggu persetujuan</p>
         </div>
       </div>
 
-      {/* Tabs Navigation */}
-      <div className="flex border-b border-slate-200 mb-8 overflow-x-auto no-scrollbar gap-2">
-        {[
-          { key: 'ringkasan', label: 'Ringkasan' },
-          { key: 'kos', label: `Daftar Kos (${kosList.length})` },
-          { key: 'booking', label: `Permintaan Booking (${bookings.length})` },
-          { key: 'kamar', label: `Kelola Kamar (${stats.totalRooms})` },
-          { key: 'pembayaran', label: `Pembayaran & Keuangan ${payments.filter(p => p.status === 'PENDING').length > 0 ? `(${payments.filter(p => p.status === 'PENDING').length} Baru)` : `(${payments.length})`}` },
-          { key: 'ulasan', label: `Ulasan & Rating (${reviews.length})` }
-        ].map(tab => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`py-3 px-4 text-xs font-bold whitespace-nowrap transition-all border-b-2 ${
-              activeTab === tab.key
-                ? 'border-emerald-600 text-emerald-700 bg-emerald-50/50 rounded-t-lg'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* Tabs Navigation — sticky di bawah header agar tab tetap terjangkau
+          saat daftar kamar/booking panjang di-scroll. */}
+      <div className="sticky top-16 z-30 -mx-4 mb-8 border-b border-slate-200 bg-slate-50/95 backdrop-blur-sm">
+        <div className="flex overflow-x-auto no-scrollbar gap-1 px-4">
+          {[
+            { key: 'ringkasan', label: 'Ringkasan' },
+            { key: 'kos', label: `Daftar Kos (${kosList.length})` },
+            { key: 'booking', label: `Permintaan Booking (${bookings.length})` },
+            { key: 'kamar', label: `Kelola Kamar (${stats.totalRooms})` },
+            { key: 'pembayaran', label: `Pembayaran & Keuangan ${payments.filter(p => p.status === 'PENDING').length > 0 ? `(${payments.filter(p => p.status === 'PENDING').length} Baru)` : `(${payments.length})`}` },
+            { key: 'ulasan', label: `Ulasan & Rating (${reviews.length})` }
+          ].map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              aria-current={activeTab === tab.key ? 'page' : undefined}
+              className={`py-3 px-3 text-xs font-semibold whitespace-nowrap transition-colors border-b-2 ${
+                activeTab === tab.key
+                  ? 'border-emerald-600 text-emerald-700'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* TAB 1: RINGKASAN (OVERVIEW) */}
@@ -1093,84 +1101,77 @@ export default function OwnerDashboardPage() {
       {/* TAB 4: KELOLA KAMAR (ROOMS) */}
       {activeTab === 'kamar' && (
         <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-            <div className="flex items-center gap-3">
-              <label className="text-xs font-bold text-slate-700 whitespace-nowrap">Pilih Properti Kos:</label>
-              <select
+          <div className="bg-white p-5 rounded-2xl border border-slate-200">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <SearchDropdown
+                id="kamar-properti"
+                label="Pilih properti"
+                icon={Building}
                 value={selectedKosForRooms}
-                onChange={(e) => setSelectedKosForRooms(e.target.value)}
-                className="text-xs px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 font-semibold text-slate-800"
-              >
-                {kosList.map(k => (
-                  <option key={k.id} value={k.id}>{k.nama} ({k.rooms?.length || 0} Kamar)</option>
-                ))}
-              </select>
-            </div>
+                onChange={setSelectedKosForRooms}
+                options={kosList.map(k => ({ value: k.id, label: `${k.nama} (${k.rooms?.length || 0} Kamar)` }))}
+                placeholder="Pilih properti"
+                menuWidth="w-72 sm:w-80"
+                className="max-w-sm"
+              />
 
-            <button
-              onClick={() => {
-                const target = kosList.find(k => k.id === selectedKosForRooms);
-                setTargetKosForRoom(target);
-                setRoomForm({
-                  nomorKamar: `Kamar ${(target?.rooms?.length || 0) + 1}`,
-                  harga: target?.hargaBulanan || '',
-                  status: 'AVAILABLE'
-                });
-                setRoomModalOpen(true);
-              }}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Tambah Kamar di Kos Ini</span>
-            </button>
+              <button
+                onClick={() => {
+                  const target = kosList.find(k => k.id === selectedKosForRooms);
+                  setTargetKosForRoom(target);
+                  setRoomForm({
+                    nomorKamar: `Kamar ${(target?.rooms?.length || 0) + 1}`,
+                    harga: target?.hargaBulanan || '',
+                    status: 'AVAILABLE'
+                  });
+                  setRoomModalOpen(true);
+                }}
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold rounded-lg transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Tambah Kamar</span>
+              </button>
+            </div>
           </div>
 
           {currentKosRooms.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {currentKosRooms.map((r) => (
-                <div
-                  key={r.id}
-                  className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between hover:border-slate-300 transition-all"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-heading font-bold text-sm text-slate-900">{r.nomorKamar}</span>
-                      <button
-                        onClick={() => handleToggleRoomStatus(r.id, r.status)}
-                        className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase transition-transform hover:scale-105 ${
-                          r.status === 'AVAILABLE'
-                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                            : r.status === 'OCCUPIED'
-                            ? 'bg-slate-100 text-slate-700 border border-slate-200'
-                            : 'bg-amber-100 text-amber-800 border border-amber-200'
-                        }`}
-                        title="Klik untuk ubah status kamar"
-                      >
-                        {r.status === 'AVAILABLE' ? 'Kosong / Siap Sewa' : r.status === 'OCCUPIED' ? 'Terisi Penghuni' : 'Perbaikan'}
-                      </button>
+              {currentKosRooms.map((r) => {
+                const st = ROOM_STATUS_META[r.status] || ROOM_STATUS_META.AVAILABLE;
+                return (
+                  <div
+                    key={r.id}
+                    className="flex flex-col justify-between bg-white border border-slate-200 rounded-2xl p-4"
+                  >
+                    <div>
+                      <h3 className="font-heading font-bold text-sm text-slate-900">{r.nomorKamar}</h3>
+                      <p className="mt-1.5 text-lg font-bold text-emerald-700">
+                        {formatRupiah(r.harga)}
+                        <span className="ml-0.5 text-xs font-medium text-slate-400">/bln</span>
+                      </p>
                     </div>
 
-                    <p className="text-xs text-slate-500 mb-1">Tarif Sewa Kamar:</p>
-                    <p className="text-sm font-extrabold text-emerald-700">{formatRupiah(r.harga)}/bln</p>
+                    <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
+                      <button
+                        onClick={() => handleToggleRoomStatus(r.id, r.status)}
+                        aria-label={`Ubah status ${r.nomorKamar}, sekarang ${st.label}`}
+                        className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition-colors ${st.cls}`}
+                      >
+                        <span className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${st.dot}`} />
+                        <span>{st.label}</span>
+                        <RefreshCw className="h-3 w-3 flex-shrink-0 opacity-50" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteRoom(r.id)}
+                        aria-label={`Hapus ${r.nomorKamar}`}
+                        className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between mt-3 text-xs">
-                    <button
-                      onClick={() => handleToggleRoomStatus(r.id, r.status)}
-                      className="text-slate-600 hover:text-emerald-700 font-semibold text-[11px]"
-                    >
-                      Ubah Status ↺
-                    </button>
-                    <button
-                      onClick={() => handleDeleteRoom(r.id)}
-                      className="text-rose-500 hover:text-rose-700 p-1"
-                      title="Hapus Kamar"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center">

@@ -109,9 +109,7 @@ export default function SearchDropdown({
           triggerRef.current?.click();
         }
       }}
-      className={`relative px-4 py-2 sm:border-r border-slate-200 transition-colors ${
-        isOpen ? 'z-30' : 'z-10'
-      } ${className}`}
+      className={`relative transition-colors ${isOpen ? 'z-30' : 'z-10'} ${className}`}
     >
       <button
         ref={triggerRef}
