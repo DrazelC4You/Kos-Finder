@@ -137,6 +137,33 @@ function Navbar() {
   );
 }
 
+function NotFound() {
+  return (
+    <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4 py-16">
+      <p className="text-6xl font-extrabold font-heading text-slate-200">404</p>
+      <h1 className="mt-4 text-xl font-bold text-slate-900">Halaman tidak ditemukan</h1>
+      <p className="mt-2 text-sm text-slate-500 max-w-md">
+        Halaman yang kamu cari mungkin sudah dipindahkan atau tidak lagi tersedia.
+      </p>
+      <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all"
+        >
+          <Home className="w-3.5 h-3.5" />
+          Kembali ke Beranda
+        </Link>
+        <Link
+          to="/cari"
+          className="inline-flex items-center px-4 py-2 bg-white hover:bg-slate-50 text-slate-600 text-xs font-semibold rounded-lg border border-slate-200 transition-colors"
+        >
+          Cari Kos
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <AuthProvider>
@@ -161,6 +188,7 @@ export default function App() {
             <Route path="/verify-email" element={<VerifyEmailPage />} />
             <Route path="/tentang" element={<AboutPage />} />
             <Route path="/untuk-pemilik" element={<OwnerLandingPage />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
         <footer className="bg-white border-t border-slate-200 py-8 text-center text-xs text-slate-500">
