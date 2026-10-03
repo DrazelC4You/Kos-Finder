@@ -1,22 +1,27 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import { Home, Heart, Shield, LogIn, UserPlus, LogOut, Building, MessageSquare, Menu, X } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
-import HomePage from './pages/HomePage.jsx';
-import KosDetailPage from './pages/KosDetailPage.jsx';
-import SearchPage from './pages/SearchPage.jsx';
-import LoginPage from './pages/LoginPage.jsx';
-import RegisterPage from './pages/RegisterPage.jsx';
-import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx';
-import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
-import VerifyEmailPage from './pages/VerifyEmailPage.jsx';
-import AboutPage from './pages/AboutPage.jsx';
-import OwnerLandingPage from './pages/OwnerLandingPage.jsx';
-import TenantDashboardPage from './pages/TenantDashboardPage.jsx';
-import OwnerDashboardPage from './pages/OwnerDashboardPage.jsx';
-import ChatPage from './pages/ChatPage.jsx';
-import AdminDashboardPage from './pages/AdminDashboardPage.jsx';
 import NotificationBell from './components/NotificationBell.jsx';
+import RouteFallback from './components/RouteFallback.jsx';
+import RouteErrorBoundary from './components/RouteErrorBoundary.jsx';
+
+// Chunk per rute: Leaflet hanya dibutuhkan halaman detail kos, framer-motion
+// hanya beranda, dan tiga dasbor tidak pernah dibuka pengunjung anonim.
+const HomePage = lazy(() => import('./pages/HomePage.jsx'));
+const KosDetailPage = lazy(() => import('./pages/KosDetailPage.jsx'));
+const SearchPage = lazy(() => import('./pages/SearchPage.jsx'));
+const LoginPage = lazy(() => import('./pages/LoginPage.jsx'));
+const RegisterPage = lazy(() => import('./pages/RegisterPage.jsx'));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage.jsx'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage.jsx'));
+const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage.jsx'));
+const AboutPage = lazy(() => import('./pages/AboutPage.jsx'));
+const OwnerLandingPage = lazy(() => import('./pages/OwnerLandingPage.jsx'));
+const TenantDashboardPage = lazy(() => import('./pages/TenantDashboardPage.jsx'));
+const OwnerDashboardPage = lazy(() => import('./pages/OwnerDashboardPage.jsx'));
+const ChatPage = lazy(() => import('./pages/ChatPage.jsx'));
+const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage.jsx'));
 
 function Navbar() {
   const { user, isAuthenticated, logout, isOwner, isTenant, isAdmin } = useAuth();
@@ -247,26 +252,30 @@ export default function App() {
       <div className="min-h-screen flex flex-col bg-slate-50">
         <Navbar />
         <main className="flex-1">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/cari" element={<SearchPage />} />
-            <Route path="/kos/:id" element={<KosDetailPage />} />
-            <Route path="/tenant/dashboard" element={<TenantDashboardPage />} />
-            <Route path="/tenant" element={<TenantDashboardPage />} />
-            <Route path="/favorit" element={<TenantDashboardPage />} />
-            <Route path="/owner/dashboard" element={<OwnerDashboardPage />} />
-            <Route path="/owner" element={<OwnerDashboardPage />} />
-            <Route path="/chat" element={<ChatPage />} />
-            <Route path="/admin" element={<AdminDashboardPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/verify-email" element={<VerifyEmailPage />} />
-            <Route path="/tentang" element={<AboutPage />} />
-            <Route path="/untuk-pemilik" element={<OwnerLandingPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <RouteErrorBoundary>
+            <Suspense fallback={<RouteFallback />}>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/cari" element={<SearchPage />} />
+                <Route path="/kos/:id" element={<KosDetailPage />} />
+                <Route path="/tenant/dashboard" element={<TenantDashboardPage />} />
+                <Route path="/tenant" element={<TenantDashboardPage />} />
+                <Route path="/favorit" element={<TenantDashboardPage />} />
+                <Route path="/owner/dashboard" element={<OwnerDashboardPage />} />
+                <Route path="/owner" element={<OwnerDashboardPage />} />
+                <Route path="/chat" element={<ChatPage />} />
+                <Route path="/admin" element={<AdminDashboardPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route path="/verify-email" element={<VerifyEmailPage />} />
+                <Route path="/tentang" element={<AboutPage />} />
+                <Route path="/untuk-pemilik" element={<OwnerLandingPage />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </RouteErrorBoundary>
         </main>
         <footer className="bg-white border-t border-slate-200 py-8 text-center text-xs text-slate-500">
           <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4">
