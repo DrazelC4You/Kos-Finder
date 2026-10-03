@@ -96,7 +96,7 @@ export default function OwnerDashboardPage() {
     nama: '',
     deskripsi: '',
     alamat: '',
-    kota: 'Purwokerto',
+    kota: '',
     hargaBulanan: '',
     type: 'CAMPUR',
     foto: [],
@@ -204,7 +204,7 @@ export default function OwnerDashboardPage() {
       nama: '',
       deskripsi: '',
       alamat: '',
-      kota: 'Purwokerto',
+      kota: '',
       hargaBulanan: '',
       type: 'CAMPUR',
       foto: [],
@@ -1576,7 +1576,7 @@ export default function OwnerDashboardPage() {
                 <input
                   type="text"
                   required
-                  placeholder="Contoh: Kost Harmoni Asri Purwokerto"
+                  placeholder="Contoh: Kost Harmoni Asri"
                   value={kosForm.nama}
                   onChange={(e) => setKosForm({ ...kosForm, nama: e.target.value })}
                   className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600"
@@ -1589,7 +1589,7 @@ export default function OwnerDashboardPage() {
                   <input
                     type="text"
                     required
-                    placeholder="Contoh: Purwokerto"
+                    placeholder="Nama kota / kabupaten"
                     value={kosForm.kota}
                     onChange={(e) => setKosForm({ ...kosForm, kota: e.target.value })}
                     className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600"
