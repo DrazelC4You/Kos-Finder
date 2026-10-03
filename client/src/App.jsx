@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import {
-  Home, Heart, Shield, LogIn, UserPlus, LogOut, Building, MessageSquare, Search,
+  Home, Heart, Shield, LogOut, Building, MessageSquare, Search,
   LayoutGrid, X, LayoutDashboard, History, ClipboardList, BedDouble, Star,
   Wallet, UserRound, FileText, ChevronRight
 } from 'lucide-react';
@@ -180,61 +180,62 @@ function Navbar() {
           ))}
         </nav>
 
-        {/* User Auth Section */}
-        <div className="flex items-center gap-3">
+        {/* Cluster kanan. Di bawah lg perannya dipegang sheet "Menu" pada bar
+            bawah (kartu akun + deep link + Keluar), jadi header mobile cukup
+            brand + lonceng — tidak mengulang diri sendiri. */}
+        <div className="flex items-center gap-2">
           {isAuthenticated ? (
-            <div className="flex items-center gap-2.5">
+            <>
               {/* Notification Bell Component */}
               <NotificationBell />
 
               <Link
                 to={getDashboardPath()}
-                className="flex items-center gap-2 py-1 px-2.5 bg-slate-100 hover:bg-slate-200/80 rounded-full border border-slate-200 transition-colors"
-                title="Buka Dashboard"
-                aria-label="Buka Dashboard"
+                aria-label={`Buka dashboard ${user.name}`}
+                className="hidden lg:flex items-center gap-2.5 pl-1 py-1 pr-1 xl:pr-3 rounded-full hover:bg-slate-100 transition-colors"
               >
                 <img
                   src={user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.name)}`}
-                  alt={user.name}
-                  className="w-6 h-6 rounded-full bg-slate-200 object-cover"
+                  alt=""
+                  className="w-8 h-8 rounded-full bg-slate-100 object-cover"
                 />
-                {/* Nama + role hanya di xl ke atas; di bawahnya chip memakan jatah
-                    yang dibutuhkan 7 link nav. */}
-                <div className="hidden xl:flex flex-col text-left">
-                  <span className="text-xs font-bold text-slate-800 leading-tight max-w-[140px] truncate">{user.name}</span>
-                  <span className="text-[10px] font-semibold text-emerald-700 uppercase leading-none">
-                    {isOwner ? 'Pemilik Kos' : isTenant ? 'Pencari Kos' : 'Admin'}
-                  </span>
-                </div>
+                <span className="hidden xl:inline text-xs font-semibold text-slate-700 max-w-[140px] truncate">{user.name}</span>
               </Link>
 
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-1 text-xs font-semibold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 py-1.5 px-3 rounded-lg border border-red-200 transition-colors"
-                title="Keluar dari akun"
-                aria-label="Keluar"
+                className="hidden lg:flex items-center gap-1.5 pl-3 py-1.5 text-xs font-medium text-slate-500 border-l border-slate-200 hover:text-red-600 transition-colors"
               >
                 <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Keluar</span>
+                <span>Keluar</span>
               </button>
-            </div>
+            </>
           ) : (
-            <div className="flex items-center gap-2">
+            <>
+              {/* Untuk tamu, masuk/daftar tetap satu sentuhan dari header mobile —
+                aksi paling bernilai sebelum punya akun. Daftar lengkap ada di
+                sheet "Menu". */}
               <Link
                 to="/login"
-                className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-emerald-600 py-2 px-3 rounded-lg hover:bg-slate-100 transition-colors"
+                className="lg:hidden px-2 py-1 text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors"
               >
-                <LogIn className="w-4 h-4" />
-                <span className="hidden min-[360px]:inline">Masuk</span>
+                Masuk
               </Link>
-              <Link
-                to="/register"
-                className="flex items-center gap-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 py-2 px-3.5 rounded-lg shadow-sm transition-all"
-              >
-                <UserPlus className="w-4 h-4" />
-                <span className="hidden min-[320px]:inline">Daftar</span>
-              </Link>
-            </div>
+              <div className="hidden lg:flex items-center gap-2">
+                <Link
+                  to="/login"
+                  className="px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                >
+                  Masuk
+                </Link>
+                <Link
+                  to="/register"
+                  className="px-3.5 py-2 rounded-lg bg-emerald-700 text-white text-xs font-semibold hover:bg-emerald-800 transition-colors"
+                >
+                  Daftar
+                </Link>
+              </div>
+            </>
           )}
 
         </div>
