@@ -1,7 +1,12 @@
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
-import { Home, Heart, Shield, LogIn, UserPlus, LogOut, Building, MessageSquare, Search, LayoutGrid, X } from 'lucide-react';
+import {
+  Home, Heart, Shield, LogIn, UserPlus, LogOut, Building, MessageSquare, Search,
+  LayoutGrid, X, LayoutDashboard, History, ClipboardList, BedDouble, Star,
+  Wallet, UserRound, FileText, ChevronRight
+} from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
+import api from './services/api.js';
 import NotificationBell from './components/NotificationBell.jsx';
 import RouteFallback from './components/RouteFallback.jsx';
 import RouteErrorBoundary from './components/RouteErrorBoundary.jsx';
@@ -22,6 +27,53 @@ const TenantDashboardPage = lazy(() => import('./pages/TenantDashboardPage.jsx')
 const OwnerDashboardPage = lazy(() => import('./pages/OwnerDashboardPage.jsx'));
 const ChatPage = lazy(() => import('./pages/ChatPage.jsx'));
 const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage.jsx'));
+
+// Isi sheet "Menu": khusus tujuan yang TIDAK ada di bar bawah. `countKey`
+// merujuk ke field stats dari dasbor peran yang bersangkutan, jadi angkanya
+// berasal dari data nyata — bukan hiasan.
+const ROLE_MENU = {
+  tenant: {
+    statsUrl: '/tenant/dashboard',
+    stats: [
+      { key: 'activeBookings', label: 'aktif' },
+      { key: 'pendingBookings', label: 'menunggu' },
+      { key: 'totalFavorites', label: 'favorit' }
+    ],
+    rows: [
+      { to: '/tenant/dashboard?tab=ringkasan', label: 'Ringkasan', icon: LayoutDashboard },
+      { to: '/tenant/dashboard?tab=riwayat', label: 'Riwayat booking', icon: History, countKey: 'pendingBookings' },
+      { to: '/tenant/dashboard?tab=favorit', label: 'Favorit', icon: Heart, countKey: 'totalFavorites' },
+      { to: '/tenant/dashboard?tab=pembayaran', label: 'Pembayaran', icon: Wallet },
+      { to: '/tenant/dashboard?tab=profil', label: 'Profil', icon: UserRound }
+    ]
+  },
+  owner: {
+    statsUrl: '/owner/dashboard',
+    stats: [
+      { key: 'totalProperties', label: 'properti' },
+      { key: 'availableRooms', label: 'kamar kosong' },
+      { key: 'pendingBookings', label: 'permintaan' }
+    ],
+    rows: [
+      { to: '/owner/dashboard?tab=ringkasan', label: 'Ringkasan', icon: LayoutDashboard },
+      { to: '/owner/dashboard?tab=kos', label: 'Daftar properti', icon: Building, countKey: 'totalProperties' },
+      { to: '/owner/dashboard?tab=booking', label: 'Permintaan booking', icon: ClipboardList, countKey: 'pendingBookings' },
+      { to: '/owner/dashboard?tab=kamar', label: 'Kelola kamar', icon: BedDouble, countKey: 'availableRooms' },
+      { to: '/owner/dashboard?tab=pembayaran', label: 'Keuangan', icon: Wallet },
+      { to: '/owner/dashboard?tab=ulasan', label: 'Ulasan & rating', icon: Star }
+    ]
+  },
+  admin: {
+    statsUrl: null,
+    stats: [],
+    rows: [{ to: '/admin', label: 'Admin Panel', icon: Shield }]
+  }
+};
+
+const EXPLORE_ROWS = [
+  { to: '/untuk-pemilik', label: 'Untuk Pemilik', icon: Building },
+  { to: '/tentang', label: 'Tentang KosFinder', icon: FileText }
+];
 
 function Navbar() {
   const { user, isAuthenticated, logout, isOwner, isTenant, isAdmin } = useAuth();
@@ -84,6 +136,25 @@ function Navbar() {
     { key: 'menu', label: 'Menu', icon: LayoutGrid }
   ];
   const pillIndex = openNav ? 3 : primaryItems.findIndex((item) => item.active?.(location.pathname));
+
+  // Angka di sheet diambil saat sheet dibuka, bukan saat halaman dimuat,
+  // supaya chrome entry tidak menahan data dasbor.
+  const roleMenu = isAdmin ? ROLE_MENU.admin : isOwner ? ROLE_MENU.owner : ROLE_MENU.tenant;
+  const [menuStats, setMenuStats] = useState(null);
+
+  useEffect(() => {
+    if (!openNav || !isAuthenticated) return undefined;
+    if (!roleMenu.statsUrl) { setMenuStats(null); return undefined; }
+    let alive = true;
+    setMenuStats(null);
+    api.get(roleMenu.statsUrl)
+      .then((res) => { if (alive && res.data?.success) setMenuStats(res.data.data?.stats || null); })
+      .catch(() => { if (alive) setMenuStats(null); });
+    return () => { alive = false; };
+  }, [openNav, isAuthenticated, roleMenu]);
+
+  // Bar bawah sudah memuat salah satu tujuan Jelajah untuk tamu; jangan ulangi.
+  const exploreRows = EXPLORE_ROWS.filter((row) => !primaryItems.some((p) => p.to === row.to));
 
   return (
     <>
@@ -250,77 +321,141 @@ function Navbar() {
             </div>
           </div>
 
-          <div className="px-5 py-4 border-b border-slate-100">
-            {isAuthenticated ? (
+          {isAuthenticated ? (
+            <div className="mx-4 mt-4 rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
               <div className="flex items-center gap-3">
                 <img
                   src={user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.name)}`}
                   alt={user.name}
-                  className="w-11 h-11 rounded-full bg-slate-100 object-cover"
+                  className="w-11 h-11 flex-shrink-0 rounded-full bg-white object-cover ring-2 ring-emerald-200"
                 />
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-slate-900 truncate">{user.name}</p>
-                  <p className="text-[11px] font-semibold text-emerald-700 uppercase">
-                    {isOwner ? 'Pemilik Kos' : isTenant ? 'Pencari Kos' : 'Admin'}
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+                    {isOwner ? 'Pemilik Kos' : isAdmin ? 'Admin' : 'Pencari Kos'}
                   </p>
                 </div>
                 <Link
                   to={getDashboardPath()}
                   onClick={() => setOpenNav(false)}
-                  className="text-xs font-semibold text-slate-600 hover:text-emerald-700 whitespace-nowrap"
+                  className="flex-shrink-0 rounded-lg bg-white px-2.5 py-1.5 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200 transition-colors hover:bg-emerald-700 hover:text-white hover:ring-emerald-700"
                 >
                   Dashboard
                 </Link>
               </div>
-            ) : (
-              <div className="flex items-center gap-2">
+
+              {roleMenu.stats.length > 0 && menuStats && (
+                <div className="mt-4 grid grid-cols-3 divide-x divide-emerald-100 rounded-xl bg-white/70 py-2.5">
+                  {roleMenu.stats.map((s) => (
+                    <div key={s.key} className="px-1 text-center">
+                      <p className="font-heading text-lg font-bold leading-none text-slate-900 tabular-nums">
+                        {menuStats[s.key] ?? 0}
+                      </p>
+                      <p className="mt-1 text-[10px] uppercase tracking-wide text-slate-500">{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="mx-4 mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm font-semibold text-slate-900">Belum masuk</p>
+              <p className="mt-0.5 mb-3 text-xs text-slate-500">
+                Simpan favorit dan ajukan sewa langsung dari aplikasi.
+              </p>
+              <div className="flex gap-2">
                 <Link
                   to="/login"
                   onClick={() => setOpenNav(false)}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-200 text-center text-xs font-semibold text-slate-700"
+                  className="flex-1 rounded-lg border border-slate-200 bg-white py-2 text-center text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
                 >
                   Masuk
                 </Link>
                 <Link
                   to="/register"
                   onClick={() => setOpenNav(false)}
-                  className="flex-1 py-2.5 rounded-xl bg-emerald-600 text-center text-xs font-semibold text-white"
+                  className="flex-1 rounded-lg bg-emerald-700 py-2 text-center text-xs font-semibold text-white transition-colors hover:bg-emerald-800"
                 >
                   Daftar
                 </Link>
               </div>
-            )}
-          </div>
-
-          <nav className="p-3 space-y-0.5">
-            {navItems.map(({ to, label, icon: Icon, iconClass, linkClass = '' }, idx) => (
-              <Link
-                key={to}
-                to={to}
-                onClick={() => setOpenNav(false)}
-                className={`animate-sheet-item flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-emerald-700 transition-colors ${linkClass}`}
-                style={{ animationDelay: `${60 + idx * 26}ms` }}
-              >
-                {Icon ? (
-                  <Icon className={`w-4 h-4 ${iconClass || 'text-slate-400'}`} />
-                ) : (
-                  <span className="w-4 h-4" aria-hidden="true" />
-                )}
-                <span>{label}</span>
-              </Link>
-            ))}
-          </nav>
+            </div>
+          )}
 
           {isAuthenticated && (
-            <div className="px-3 pb-6">
+            <div className="px-4 pt-5">
+              <p className="px-1 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                {isAdmin ? 'Moderasi' : 'Kelola akun'}
+              </p>
+              <ul className="space-y-0.5">
+                {roleMenu.rows.map((row, idx) => {
+                  const Icon = row.icon;
+                  const count = row.countKey && menuStats ? menuStats[row.countKey] : null;
+                  const isCurrent = `${location.pathname}${location.search}` === row.to;
+                  return (
+                    <li key={row.to}>
+                      <Link
+                        to={row.to}
+                        onClick={() => setOpenNav(false)}
+                        aria-current={isCurrent ? 'page' : undefined}
+                        style={{ animationDelay: `${50 + idx * 24}ms` }}
+                        className={`animate-sheet-item flex items-center gap-3 rounded-xl px-2 py-2 transition-colors ${
+                          isCurrent ? 'bg-emerald-50 text-emerald-800' : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500">
+                          <Icon className="w-4 h-4" />
+                        </span>
+                        <span className="min-w-0 flex-1 truncate text-sm font-medium">{row.label}</span>
+                        {count > 0 && (
+                          <span className="flex-shrink-0 rounded-full bg-emerald-600/10 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-emerald-700">
+                            {count}
+                          </span>
+                        )}
+                        <ChevronRight className="w-4 h-4 flex-shrink-0 text-slate-300" />
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+
+          <div className="px-4 pt-5">
+            <p className="px-1 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">Jelajah</p>
+            <ul className="space-y-0.5">
+              {exploreRows.map((row, idx) => {
+                const Icon = row.icon;
+                return (
+                  <li key={row.to}>
+                    <Link
+                      to={row.to}
+                      onClick={() => setOpenNav(false)}
+                      style={{ animationDelay: `${50 + (roleMenu.rows.length + idx) * 24}ms` }}
+                      className="animate-sheet-item flex items-center gap-3 rounded-xl px-2 py-2 text-slate-700 transition-colors hover:bg-slate-50"
+                    >
+                      <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500">
+                        <Icon className="w-4 h-4" />
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-sm font-medium">{row.label}</span>
+                      <ChevronRight className="w-4 h-4 flex-shrink-0 text-slate-300" />
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+
+          {isAuthenticated && (
+            <div className="px-4 pt-5 pb-7">
               <button
                 type="button"
                 onClick={() => { setOpenNav(false); handleLogout(); }}
-                style={{ animationDelay: `${60 + navItems.length * 26}ms` }}
-                className="animate-sheet-item flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                style={{ animationDelay: `${50 + (roleMenu.rows.length + exploreRows.length) * 24}ms` }}
+                className="animate-sheet-item flex w-full items-center gap-3 rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
               >
-                <LogOut className="w-4 h-4" />
-                <span>Keluar</span>
+                <LogOut className="w-4 h-4 flex-shrink-0" />
+                <span className="flex-1 text-left">Keluar</span>
               </button>
             </div>
           )}
