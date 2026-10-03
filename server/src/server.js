@@ -15,12 +15,19 @@ const server = app.listen(PORT, async () => {
     console.log(`📡 Health Check: http://localhost:${PORT}/api/health`);
     console.log(`=========================================`);
 
+    // Postgres wajib di produksi. Tanpa guard ini server tetap hidup di atas
+    // memory store: tulisan hilang tiap restart dan health check tetap hijau.
+    const { isPostgres } = await getDatabaseStatus();
+    if (process.env.NODE_ENV === 'production' && !isPostgres) {
+        console.error('❌ PostgreSQL tidak terjangkau. Server dihentikan supaya deploy ditandai gagal, bukan berjalan di atas memory store.');
+        process.exit(1);
+    }
+
     // Auto-seed hanya saat diminta eksplisit. Data demo berisi akun admin dengan
     // password seragam yang tercantum di repo, jadi tidak boleh terbentuk otomatis
     // di deploy pertama. Set SEED_DEMO_DATA=true untuk mengaktifkan.
     if (process.env.SEED_DEMO_DATA === 'true') {
         try {
-            const { isPostgres } = await getDatabaseStatus();
             if (isPostgres) {
                 const userCount = await prisma.user.count();
                 if (userCount === 0) {

@@ -1,5 +1,12 @@
 import jwt from 'jsonwebtoken';
 
+// Fallback di bawah hanya untuk dev lokal. Nilainya juga tertulis di .env.example
+// (repo publik), jadi token yang ditandatangani dengannya bisa dipalsukan siapa
+// pun — lebih baik gagal saat boot daripada jalan diam-diam dengan key known.
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET wajib diisi di environment produksi.');
+}
+
 const JWT_SECRET = process.env.JWT_SECRET || 'kosfinder_super_secret_jwt_key_development_2026';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 

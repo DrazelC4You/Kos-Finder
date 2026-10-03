@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { successResponse } from '../utils/response.js';
+import { successResponse, errorResponse } from '../utils/response.js';
 import { getDatabaseStatus } from '../services/db.js';
 import authRoutes from './authRoutes.js';
 import kosRoutes from './kosRoutes.js';
@@ -15,14 +15,26 @@ import uploadRoutes from './uploadRoutes.js';
 
 const router = Router();
 
-// Health check endpoint
-router.get('/health', (req, res) => {
-    return successResponse(res, {
-        status: 'UP',
+// Health check endpoint — Render memakainya sebagai healthCheckPath, jadi harus
+// ikut membusuk kalau database mati. Kalau selalu UP, service dilaporkan sehat
+// padahal seluruh tulisannya masuk ke memory store.
+router.get('/health', async (req, res) => {
+    const { isPostgres } = await getDatabaseStatus();
+    // Di luar produksi, memory store memang mode development yang sah, jadi
+    // hanya produksi tanpa Postgres yang dihitung gagal.
+    const failing = !isPostgres && process.env.NODE_ENV === 'production';
+    const data = {
+        status: failing ? 'DEGRADED' : 'UP',
+        database: isPostgres ? 'postgresql' : 'memory',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         environment: process.env.NODE_ENV || 'development'
-    }, 'KosFinder API Server Berjalan Normal');
+    };
+
+    if (failing) {
+        return errorResponse(res, 'API hidup, tetapi PostgreSQL tidak terjangkau', 503, data);
+    }
+    return successResponse(res, data, 'KosFinder API Server Berjalan Normal');
 });
 
 // Database status endpoint
