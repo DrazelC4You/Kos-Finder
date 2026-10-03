@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../services/api.js';
 import {
   Shield, Users, Building, BarChart2, AlertTriangle, Star,
   Check, X, RefreshCw, Search, ChevronLeft, ChevronRight,
@@ -9,8 +9,6 @@ import {
   Ban, BadgeCheck
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
-
-const API = 'http://localhost:5000/api';
 
 // -----------------------------------------------
 // Helper: format rupiah
@@ -105,7 +103,7 @@ function Pagination({ page, totalPages, onPrev, onNext }) {
 // MAIN COMPONENT
 // ================================================================
 export default function AdminDashboardPage() {
-  const { user, isAuthenticated, isAdmin, token, loading: authLoading } = useAuth();
+  const { user, isAuthenticated, isAdmin, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState('overview');
@@ -149,10 +147,7 @@ export default function AdminDashboardPage() {
     if (!isAdmin) { navigate('/'); return; }
   }, [isAuthenticated, isAdmin, authLoading, navigate]);
 
-  const authHeaders = useCallback(() => ({
-    headers: { Authorization: `Bearer ${token}` }
-  }), [token]);
-
+  // Bearer token disuntik otomatis oleh interceptor di services/api.js
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3500);
@@ -163,10 +158,10 @@ export default function AdminDashboardPage() {
   // -----------------------------------------------
   const fetchStats = useCallback(async () => {
     try {
-      const { data } = await axios.get(`${API}/admin/stats`, authHeaders());
+      const { data } = await api.get('/admin/stats');
       setStats(data.data);
     } catch (e) { console.error(e); }
-  }, [authHeaders]);
+  }, []);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -174,12 +169,12 @@ export default function AdminDashboardPage() {
       const params = new URLSearchParams({ page: userPage, limit: 15 });
       if (userSearch) params.append('search', userSearch);
       if (userRoleFilter) params.append('role', userRoleFilter);
-      const { data } = await axios.get(`${API}/admin/users?${params}`, authHeaders());
+      const { data } = await api.get(`/admin/users?${params}`);
       setUsers(data.data?.data || []);
       setUserTotalPages(data.data?.pagination?.totalPages || 1);
     } catch (e) { showToast('Gagal memuat pengguna', 'error'); }
     finally { setLoading(false); }
-  }, [authHeaders, userPage, userSearch, userRoleFilter]);
+  }, [userPage, userSearch, userRoleFilter]);
 
   const fetchListings = useCallback(async () => {
     setLoading(true);
@@ -187,35 +182,35 @@ export default function AdminDashboardPage() {
       const params = new URLSearchParams({ page: listingPage, limit: 15 });
       if (listingStatusFilter) params.append('status', listingStatusFilter);
       if (listingSearch) params.append('search', listingSearch);
-      const { data } = await axios.get(`${API}/admin/listings?${params}`, authHeaders());
+      const { data } = await api.get(`/admin/listings?${params}`);
       setListings(data.data?.data || []);
       setListingTotalPages(data.data?.pagination?.totalPages || 1);
     } catch (e) { showToast('Gagal memuat listing', 'error'); }
     finally { setLoading(false); }
-  }, [authHeaders, listingPage, listingStatusFilter, listingSearch]);
+  }, [listingPage, listingStatusFilter, listingSearch]);
 
   const fetchReports = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({ page: reportPage, limit: 15 });
       if (reportStatusFilter) params.append('status', reportStatusFilter);
-      const { data } = await axios.get(`${API}/admin/reports?${params}`, authHeaders());
+      const { data } = await api.get(`/admin/reports?${params}`);
       setReports(data.data?.data || []);
       setReportTotalPages(data.data?.pagination?.totalPages || 1);
     } catch (e) { showToast('Gagal memuat laporan', 'error'); }
     finally { setLoading(false); }
-  }, [authHeaders, reportPage, reportStatusFilter]);
+  }, [reportPage, reportStatusFilter]);
 
   const fetchReviews = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({ page: reviewPage, limit: 15 });
-      const { data } = await axios.get(`${API}/admin/reviews?${params}`, authHeaders());
+      const { data } = await api.get(`/admin/reviews?${params}`);
       setReviews(data.data?.data || []);
       setReviewTotalPages(data.data?.pagination?.totalPages || 1);
     } catch (e) { showToast('Gagal memuat ulasan', 'error'); }
     finally { setLoading(false); }
-  }, [authHeaders, reviewPage]);
+  }, [reviewPage]);
 
   // -----------------------------------------------
   // Load on tab change
@@ -235,7 +230,7 @@ export default function AdminDashboardPage() {
   const handleVerifyListing = async (kosId, action, reason = '') => {
     setActionLoading(`listing-${kosId}-${action}`);
     try {
-      await axios.patch(`${API}/admin/listings/${kosId}/verify`, { action, reason }, authHeaders());
+      await api.patch(`/admin/listings/${kosId}/verify`, { action, reason });
       showToast(`Listing berhasil di-${action === 'approve' ? 'setujui' : action === 'reject' ? 'tolak' : 'tangguhkan'}`);
       fetchListings();
       fetchStats();
@@ -246,7 +241,7 @@ export default function AdminDashboardPage() {
   const handleUserRole = async (userId, role) => {
     setActionLoading(`user-role-${userId}`);
     try {
-      await axios.patch(`${API}/admin/users/${userId}/role`, { role }, authHeaders());
+      await api.patch(`/admin/users/${userId}/role`, { role });
       showToast(`Peran pengguna diubah ke ${role}`);
       fetchUsers();
     } catch (e) { showToast(e.response?.data?.message || 'Gagal mengubah peran', 'error'); }
@@ -256,7 +251,7 @@ export default function AdminDashboardPage() {
   const handleUserStatus = async (userId, isVerified) => {
     setActionLoading(`user-status-${userId}`);
     try {
-      await axios.patch(`${API}/admin/users/${userId}/status`, { isVerified }, authHeaders());
+      await api.patch(`/admin/users/${userId}/status`, { isVerified });
       showToast(`Akun ${isVerified ? 'diaktifkan' : 'dinonaktifkan'}`);
       fetchUsers();
     } catch (e) { showToast(e.response?.data?.message || 'Gagal mengubah status', 'error'); }
@@ -266,7 +261,7 @@ export default function AdminDashboardPage() {
   const handleReportAction = async (reportId, action) => {
     setActionLoading(`report-${reportId}`);
     try {
-      await axios.patch(`${API}/admin/reports/${reportId}`, { action }, authHeaders());
+      await api.patch(`/admin/reports/${reportId}`, { action });
       showToast(`Laporan berhasil di-${action === 'resolve' ? 'selesaikan' : 'abaikan'}`);
       fetchReports();
     } catch (e) { showToast('Gagal memproses laporan', 'error'); }
@@ -277,7 +272,7 @@ export default function AdminDashboardPage() {
     if (!confirm('Hapus ulasan ini? Tindakan tidak dapat dibatalkan.')) return;
     setActionLoading(`review-${reviewId}`);
     try {
-      await axios.delete(`${API}/admin/reviews/${reviewId}`, authHeaders());
+      await api.delete(`/admin/reviews/${reviewId}`);
       showToast('Ulasan berhasil dihapus');
       fetchReviews();
     } catch (e) { showToast('Gagal menghapus ulasan', 'error'); }
