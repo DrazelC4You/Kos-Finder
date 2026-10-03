@@ -3,23 +3,95 @@
  * Supports campus recommendations and distance-based sorting using the Haversine formula.
  */
 
-// Curated campus landmarks with exact coordinates and thematic gradient styling
+// Curated campus landmarks with exact coordinates and thematic gradient styling.
+// `name` sengaja tidak memuat nama kota — `city` dipakai terpisah oleh kartu
+// rekomendasi, supaya satu kota tidak menumpang di label seluruh kampus.
 export const DEFAULT_CAMPUS_PRESETS = [
   {
     id: 'unsoed',
-    name: 'UNSOED Purwokerto',
+    name: 'UNSOED',
     full: 'Universitas Jenderal Soedirman',
-    area: 'Grendeng & Karangwangkal',
+    area: 'Grendeng',
     city: 'Purwokerto',
     latitude: -7.4243,
     longitude: 109.2486,
     bg: 'from-emerald-900/60 to-emerald-950/90 border-emerald-500/30 hover:border-emerald-400'
   },
   {
+    id: 'ugm',
+    name: 'UGM & UNY',
+    full: 'Universitas Gadjah Mada & UNY',
+    area: 'Bulaksumur',
+    city: 'Yogyakarta',
+    latitude: -7.7602,
+    longitude: 110.3804,
+    bg: 'from-amber-900/60 to-amber-950/90 border-amber-500/30 hover:border-amber-400'
+  },
+  {
+    id: 'ui',
+    name: 'UI',
+    full: 'Universitas Indonesia',
+    area: 'Margonda',
+    city: 'Depok',
+    latitude: -6.3689,
+    longitude: 106.8321,
+    bg: 'from-yellow-900/60 to-yellow-950/90 border-yellow-500/30 hover:border-yellow-400'
+  },
+  {
+    id: 'itb',
+    name: 'ITB & UNPAD',
+    full: 'Institut Teknologi Bandung',
+    area: 'Dago',
+    city: 'Bandung',
+    latitude: -6.8789,
+    longitude: 107.6189,
+    bg: 'from-cyan-900/60 to-cyan-950/90 border-cyan-500/30 hover:border-cyan-400'
+  },
+  {
+    id: 'undip',
+    name: 'UNDIP',
+    full: 'Universitas Diponegoro',
+    area: 'Tembalang',
+    city: 'Semarang',
+    latitude: -7.0543,
+    longitude: 110.4389,
+    bg: 'from-indigo-900/60 to-indigo-950/90 border-indigo-500/30 hover:border-indigo-400'
+  },
+  {
+    id: 'ub',
+    name: 'UB & UM',
+    full: 'Universitas Brawijaya & UM',
+    area: 'Lowokwaru',
+    city: 'Malang',
+    latitude: -7.9482,
+    longitude: 112.6179,
+    bg: 'from-orange-900/60 to-orange-950/90 border-orange-500/30 hover:border-orange-400'
+  },
+  {
+    id: 'unair',
+    name: 'UNAIR & ITS',
+    full: 'Universitas Airlangga & ITS',
+    area: 'Gubeng',
+    city: 'Surabaya',
+    latitude: -7.2721,
+    longitude: 112.7562,
+    bg: 'from-sky-900/60 to-sky-950/90 border-sky-500/30 hover:border-sky-400'
+  },
+  {
+    id: 'bali',
+    name: 'Universitas Udayana',
+    full: 'Universitas Udayana',
+    area: 'Renon',
+    city: 'Denpasar',
+    latitude: -8.6789,
+    longitude: 115.2341,
+    bg: 'from-emerald-900/60 to-emerald-950/90 border-emerald-500/30 hover:border-emerald-400'
+  },
+  {
     id: 'ump',
-    name: 'UMP Purwokerto',
-    full: 'Univ. Muhammadiyah Purwokerto',
-    area: 'Dukuhwaluh & Kembaran',
+    name: 'UMP',
+    full: 'Universitas Muhammadiyah Purwokerto',
+    area: 'Dukuhwaluh',
     city: 'Purwokerto',
     latitude: -7.4180,
     longitude: 109.2710,
@@ -29,7 +101,7 @@ export const DEFAULT_CAMPUS_PRESETS = [
     id: 'telkom',
     name: 'Telkom University',
     full: 'Telkom University Purwokerto',
-    area: 'Jl. D.I. Panjaitan',
+    area: 'Berkoh',
     city: 'Purwokerto',
     latitude: -7.4420,
     longitude: 109.2550,
@@ -37,83 +109,13 @@ export const DEFAULT_CAMPUS_PRESETS = [
   },
   {
     id: 'uinsaizu',
-    name: 'UIN Saizu Purwokerto',
+    name: 'UIN Saizu',
     full: 'UIN Prof. K.H. Saifuddin Zuhri',
-    area: 'Karangkobar, Purwokerto Barat',
+    area: 'Karangkobar',
     city: 'Purwokerto',
     latitude: -7.4120,
     longitude: 109.2250,
     bg: 'from-teal-900/60 to-teal-950/90 border-teal-500/30 hover:border-teal-400'
-  },
-  {
-    id: 'ugm',
-    name: 'UGM Yogyakarta',
-    full: 'Universitas Gadjah Mada & UNY',
-    area: 'Kaliurang, Bulaksumur',
-    city: 'Yogyakarta',
-    latitude: -7.7602,
-    longitude: 110.3804,
-    bg: 'from-amber-900/60 to-amber-950/90 border-amber-500/30 hover:border-amber-400'
-  },
-  {
-    id: 'ui',
-    name: 'UI Depok & Salemba',
-    full: 'Universitas Indonesia',
-    area: 'Margonda & Kukusan',
-    city: 'Depok',
-    latitude: -6.3689,
-    longitude: 106.8321,
-    bg: 'from-yellow-900/60 to-yellow-950/90 border-yellow-500/30 hover:border-yellow-400'
-  },
-  {
-    id: 'itb',
-    name: 'ITB & UNPAD Bandung',
-    full: 'Institut Teknologi Bandung',
-    area: 'Dago & Dipatiukur',
-    city: 'Bandung',
-    latitude: -6.8789,
-    longitude: 107.6189,
-    bg: 'from-cyan-900/60 to-cyan-950/90 border-cyan-500/30 hover:border-cyan-400'
-  },
-  {
-    id: 'undip',
-    name: 'UNDIP Semarang',
-    full: 'Universitas Diponegoro',
-    area: 'Tembalang & Pleburan',
-    city: 'Semarang',
-    latitude: -7.0543,
-    longitude: 110.4389,
-    bg: 'from-indigo-900/60 to-indigo-950/90 border-indigo-500/30 hover:border-indigo-400'
-  },
-  {
-    id: 'ub',
-    name: 'UB & UM Malang',
-    full: 'Universitas Brawijaya & UM',
-    area: 'Soekarno Hatta (Suhat)',
-    city: 'Malang',
-    latitude: -7.9482,
-    longitude: 112.6179,
-    bg: 'from-orange-900/60 to-orange-950/90 border-orange-500/30 hover:border-orange-400'
-  },
-  {
-    id: 'unair',
-    name: 'UNAIR & ITS Surabaya',
-    full: 'Universitas Airlangga & ITS',
-    area: 'Gubeng & Sukolilo',
-    city: 'Surabaya',
-    latitude: -7.2721,
-    longitude: 112.7562,
-    bg: 'from-sky-900/60 to-sky-950/90 border-sky-500/30 hover:border-sky-400'
-  },
-  {
-    id: 'bali',
-    name: 'Udayana Bali',
-    full: 'Universitas Udayana',
-    area: 'Renon & Jimbaran',
-    city: 'Denpasar',
-    latitude: -8.6789,
-    longitude: 115.2341,
-    bg: 'from-emerald-900/60 to-emerald-950/90 border-emerald-500/30 hover:border-emerald-400'
   }
 ];
 

@@ -579,8 +579,8 @@ export default function TenantDashboardPage() {
               <h3 className="font-heading font-bold text-base text-slate-800 mb-1">Belum Ada Pengajuan Sewa</h3>
               <p className="text-xs text-slate-500 max-w-md mx-auto mb-5">
                 {SHOW_DEMO_TOOLS
-                  ? 'Temukan kamar kos impian Anda di Purwokerto dan sekitarnya, atau klik tombol di bawah untuk memuat data pengujian otomatis.'
-                  : 'Temukan kamar kos impian Anda di Purwokerto dan sekitarnya.'}
+                  ? 'Temukan kamar kos impian Anda di berbagai kota, atau klik tombol di bawah untuk memuat data pengujian otomatis.'
+                  : 'Temukan kamar kos impian Anda di berbagai kota.'}
               </p>
               <div className="flex flex-wrap items-center justify-center gap-3">
                 {SHOW_DEMO_TOOLS && (

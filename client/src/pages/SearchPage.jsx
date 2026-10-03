@@ -14,30 +14,32 @@ import {
 
 const POPULAR_CITIES = [
   { id: '', label: 'Semua Kota (Indonesia)' },
-  { id: 'Purwokerto', label: 'Purwokerto' },
   { id: 'Yogyakarta', label: 'Yogyakarta' },
-  { id: 'Jakarta Selatan', label: 'Jakarta Selatan' },
   { id: 'Bandung', label: 'Bandung' },
   { id: 'Surabaya', label: 'Surabaya' },
+  { id: 'Jakarta Selatan', label: 'Jakarta Selatan' },
+  { id: 'Depok', label: 'Depok' },
   { id: 'Malang', label: 'Malang' },
   { id: 'Semarang', label: 'Semarang' },
-  { id: 'Depok', label: 'Depok' },
-  { id: 'Denpasar', label: 'Denpasar / Bali' }
+  { id: 'Denpasar', label: 'Denpasar / Bali' },
+  { id: 'Purwokerto', label: 'Purwokerto' }
 ];
 
+// `label` hanya nama kampus; kota diletakkan di `area` supaya tidak menumpuk
+// di judul dan satu kota tidak dominan di seluruh chip.
 const CAMPUS_PRESETS = [
   { id: '', label: 'Semua Area', area: 'Seluruh Indonesia', icon: MapPin },
-  { id: 'unsoed', label: 'UNSOED Purwokerto', area: 'Grendeng & Karangwangkal', icon: GraduationCap },
-  { id: 'ugm', label: 'UGM & UNY Jogja', area: 'Kaliurang, Bulaksumur', icon: GraduationCap },
-  { id: 'ui', label: 'UI Depok & Salemba', area: 'Margonda & Salemba', icon: GraduationCap },
-  { id: 'itb', label: 'ITB & UNPAD Bandung', area: 'Dago & Dipatiukur', icon: GraduationCap },
-  { id: 'ub', label: 'UB & UM Malang', area: 'Soekarno Hatta (Suhat)', icon: GraduationCap },
-  { id: 'unair', label: 'UNAIR & ITS Surabaya', area: 'Gubeng & Sukolilo', icon: GraduationCap },
-  { id: 'undip', label: 'UNDIP Semarang', area: 'Tembalang', icon: GraduationCap },
-  { id: 'bali', label: 'Udayana Bali', area: 'Renon & Jimbaran', icon: GraduationCap },
-  { id: 'ump', label: 'UMP Purwokerto', area: 'Dukuhwaluh', icon: GraduationCap },
-  { id: 'telkom', label: 'Telkom Univ', area: 'Jl. D.I. Panjaitan', icon: GraduationCap },
-  { id: 'uinsaizu', label: 'UIN Saizu', area: 'Karangkobar', icon: GraduationCap }
+  { id: 'ugm', label: 'UGM & UNY', area: 'Bulaksumur, Jogja', icon: GraduationCap },
+  { id: 'itb', label: 'ITB & UNPAD', area: 'Dago & Dipatiukur, Bandung', icon: GraduationCap },
+  { id: 'ui', label: 'UI', area: 'Margonda, Depok & Salemba', icon: GraduationCap },
+  { id: 'unair', label: 'UNAIR & ITS', area: 'Gubeng & Sukolilo, Surabaya', icon: GraduationCap },
+  { id: 'ub', label: 'UB & UM', area: 'Suhat, Malang', icon: GraduationCap },
+  { id: 'undip', label: 'UNDIP', area: 'Tembalang, Semarang', icon: GraduationCap },
+  { id: 'bali', label: 'Udayana', area: 'Renon & Jimbaran, Bali', icon: GraduationCap },
+  { id: 'unsoed', label: 'UNSOED', area: 'Grendeng, Purwokerto', icon: GraduationCap },
+  { id: 'ump', label: 'UMP', area: 'Dukuhwaluh, Purwokerto', icon: GraduationCap },
+  { id: 'telkom', label: 'Telkom University', area: 'Purwokerto Selatan', icon: GraduationCap },
+  { id: 'uinsaizu', label: 'UIN Saizu', area: 'Karangkobar, Purwokerto', icon: GraduationCap }
 ];
 
 const FACILITY_CATEGORIES = [
@@ -588,7 +590,7 @@ export default function SearchPage() {
                 Kos Tidak Ditemukan
               </h3>
               <p className="text-xs text-slate-500 leading-relaxed mb-6">
-                Coba ubah pilihan kampus, rentang harga, atau reset filter untuk melihat opsi kos lainnya di sekitar Purwokerto.
+                Coba ubah pilihan kampus, rentang harga, atau reset filter untuk melihat opsi kos lainnya di seluruh area.
               </p>
               <button
                 type="button"

@@ -278,12 +278,24 @@ export default function HomePage() {
     return sortRecommendationsByLocation(campusList, userCoords, 150);
   }, [campusList, userCoords]);
 
-  // Display top 4 nearest campuses if location active & within coverage, else default 4
+  // Tampilkan 4 kampus, maksimal satu per kota supaya rekomendasi tidak
+  // didominasi satu kota. Pakai kampus terdekat per kota bila lokasi aktif.
   const displayedCampuses = useMemo(() => {
-    if (locationStatus === 'active' && !isOutsideCoverage && nearby.length > 0) {
-      return nearby.slice(0, 4);
+    const source =
+      locationStatus === 'active' && !isOutsideCoverage && nearby.length > 0
+        ? nearby
+        : campusList;
+
+    const seenCities = new Set();
+    const spread = [];
+    for (const campus of source) {
+      const city = campus.city || campus.name;
+      if (seenCities.has(city)) continue;
+      seenCities.add(city);
+      spread.push(campus);
+      if (spread.length === 4) break;
     }
-    return campusList.slice(0, 4);
+    return spread;
   }, [locationStatus, isOutsideCoverage, nearby, campusList]);
 
   useEffect(() => {
@@ -421,7 +433,7 @@ export default function HomePage() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Purwokerto, Kembaran..."
+                  placeholder="Yogyakarta, Bandung, Malang..."
                   className="w-full text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none bg-transparent"
                 />
               </div>
@@ -770,7 +782,9 @@ export default function HomePage() {
                   </div>
 
                   <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-emerald-300 font-semibold">
-                    <span className="text-slate-400 font-normal text-[11px] truncate mr-2">{c.area}</span>
+                    <span className="text-slate-400 font-normal text-[11px] truncate mr-2">
+                      {c.city ? `${c.city} · ${c.area}` : c.area}
+                    </span>
                     <span className="group-hover:translate-x-1 transition-transform inline-flex items-center gap-1 flex-shrink-0">
                       <span>Lihat Kos</span>
                       <ArrowRight className="w-3 h-3" />
