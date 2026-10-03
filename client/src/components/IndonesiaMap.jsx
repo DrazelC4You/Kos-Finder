@@ -14,11 +14,16 @@
  *  - loop: ulangi animasi koneksi
  *  - className: kelas sizing/posisi untuk <svg>
  *
- * Treatment:
- *  - Desktop: Peta Indonesia penuh di belakang teks hero (1020px), 8 kota, koneksi lengkap.
- *  - Mobile (< 768px): Versi miniatur dari komposisi desktop yang SAMA — peta tetap duduk
- *    di belakang teks hero (headline/deskripsi). Dot beropasitas halus (0.13–0.18), quiet zone
- *    radial di balik teks terpadat, koneksi & marker lembut agar teks tetap 100% terbaca.
+ * Treatment — dua ambang berbeda, jangan disamakan:
+ *  - isQuiet (< 1024px): bobot VISUAL diturunkan (dot 0.15/0.22, arc & marker lembut,
+ *    topeng radial terpusat di belakang headline, tanpa java-aura). Alasannya: di
+ *    768-1023px peta sudah selebar viewport sementara headline masih berada di atas
+ *    pita Jawa. Terukur di belakang blok headline (piksel tergelap, teks dibuang):
+ *    opasitas desktop 6,56:1 vs opasitas quiet 8,05:1 — ponsel sendiri ~11:1.
+ *  - isMobile (< 768px): ISI yang disederhanakan — 4 kota, 3 koneksi, ketebalan &
+ *    radius dot memakai nilai tetap, label kota mati.
+ *  - >= 1024px: komposisi penuh (8 kota, semua koneksi, aura Jawa, topeng cx 36%),
+ *    dengan dotScale menyusut mengikuti lebar agar kerapatan visual tetap sama.
  */
 import React, { useMemo } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
@@ -113,6 +118,24 @@ function useIsMobile() {
   return isMobile;
 }
 
+// Bobot visual "quiet" berlaku sampai < lg, bukan hanya di ponsel. Di 768-1023px
+// peta sudah selebar viewport sementara headline masih duduk di atas pita Jawa,
+// jadi opasitas desktop di sana membuat dot ikut menempati belakang teks.
+function useIsQuiet() {
+  const query = '(max-width: 1023px)';
+  const [isQuiet, setIsQuiet] = React.useState(
+    () => typeof window !== 'undefined' && window.matchMedia(query).matches
+  );
+  React.useEffect(() => {
+    const mql = window.matchMedia(query);
+    const onChange = (e) => setIsQuiet(e.matches);
+    mql.addEventListener('change', onChange);
+    setIsQuiet(mql.matches);
+    return () => mql.removeEventListener('change', onChange);
+  }, []);
+  return isQuiet;
+}
+
 // Kurva kuadratik melengkung ke utara (seperti arc penerbangan)
 function arcPath(a, b, curvature = 0.25) {
   const mx = (a.x + b.x) / 2;
@@ -144,6 +167,7 @@ export default function IndonesiaMap({
 }) {
   const reducedMotion = useReducedMotion();
   const isMobile = useIsMobile();
+  const isQuiet = useIsQuiet();
   const dotScale = useDotScale();
 
   // Pada mobile: pilih 4 kota kunci sepanjang Jawa–Bali agar seimbang
@@ -228,7 +252,7 @@ export default function IndonesiaMap({
         transition={{ duration: 0.8, ease: 'easeOut' }}
       >
         {/* Desktop only: aura Jawa lembut */}
-        {!isMobile && (
+        {!isQuiet && (
           <ellipse cx="355" cy={+(305 * Y_SQUASH).toFixed(2)} rx="125" ry={+(32 * Y_SQUASH).toFixed(2)} fill="url(#java-aura)" />
         )}
 
@@ -242,7 +266,7 @@ export default function IndonesiaMap({
             strokeWidth={isMobile ? 3.4 : 2.7 * dotScale}
             strokeLinecap="round"
             strokeDasharray={`0 ${MAP_PITCH * (isMobile ? 1 : dotScale)}`}
-            opacity={isMobile ? 0.15 : 0.28}
+            opacity={isQuiet ? 0.15 : 0.28}
           />
         ))}
 
@@ -256,12 +280,12 @@ export default function IndonesiaMap({
             strokeWidth={isMobile ? 3.8 : 2.9 * dotScale}
             strokeLinecap="round"
             strokeDasharray={`0 ${MAP_PITCH * (isMobile ? 1 : dotScale)}`}
-            opacity={isMobile ? 0.22 : 0.40}
+            opacity={isQuiet ? 0.22 : 0.40}
           />
         ))}
 
         {/* Desktop: topeng radial fade di belakang headline */}
-        {!isMobile && (
+        {!isQuiet && (
           <rect
             x="0" y="0"
             width={VIEW.w} height={VIEW.h}
@@ -271,7 +295,7 @@ export default function IndonesiaMap({
         )}
 
         {/* Mobile: quiet zone radial lembut di area tengah teks — luar tetap jelas */}
-        {isMobile && (
+        {isQuiet && (
           <rect
             x="0" y="0"
             width={VIEW.w} height={VIEW.h}
@@ -290,7 +314,7 @@ export default function IndonesiaMap({
             fill="none"
             stroke={lineColor}
             strokeWidth={isMobile ? 0.8 : 1.3 * dotScale}
-            opacity={isMobile ? 0.12 : 0.25}
+            opacity={isQuiet ? 0.12 : 0.25}
           />
           <motion.path
             d={arc.d}
@@ -301,8 +325,8 @@ export default function IndonesiaMap({
             initial={{ pathLength: 0, opacity: 0 }}
             animate={
               animating
-                ? { pathLength: [0, 1, 1], opacity: isMobile ? [0, 0.40, 0] : [0, 0.85, 0] }
-                : { pathLength: 1, opacity: isMobile ? 0.30 : 0.7 }
+                ? { pathLength: [0, 1, 1], opacity: isQuiet ? [0, 0.40, 0] : [0, 0.85, 0] }
+                : { pathLength: 1, opacity: isQuiet ? 0.30 : 0.7 }
             }
             transition={
               animating
@@ -325,7 +349,7 @@ export default function IndonesiaMap({
           - Mobile: 4 marker minimalis tanpa label agar tidak mengganggu teks */}
       {[...points.values()].map((p, i) => (
         <g key={p.name}>
-          <g opacity={isMobile ? 0.38 : markerOpacity}>
+          <g opacity={isQuiet ? 0.38 : markerOpacity}>
             <circle
               className="kos-map-pulse"
               cx={p.x} cy={p.y}

@@ -382,23 +382,24 @@ export default function HomePage() {
       {/* 1. HERO SECTION */}
       <section className="relative bg-gradient-to-b from-emerald-50 via-slate-50 to-slate-50 pt-12 pb-16 border-b border-slate-100">
         {/* Latar peta Indonesia bertitik — dekoratif, non-interaktif (aria-hidden + pointer-events-none).
-            Proporsi peta sudah dipadatkan ke rasio Indonesia sebenarnya di dalam
-            IndonesiaMap (Y_SQUASH), jadi tingginya tidak pernah melebihi hero:
-            - < lg: terpusat dengan lebar terkontrol (94%/420 -> 460 -> 720px). Nilai
-              top- dipilih supaya pita peta jatuh di tengah blok headline (di 390px
-              headline menempati y 94-244, peta 90px -> top 124px; di 768px peta
-              178px -> top 77px), tidak menabrak badge maupun paragraf.
-            - lg ke atas: full-bleed (w-full menyentuh tepi viewport). Jangkar atasnya
-              calc(390px - 20.58vw), bukan centering: 0.834 x 0.24674 adalah posisi
-              bawah band Jawa sebagai fraksi lebar viewport, jadi garis Jawa selalu
-              berhenti ~10px di atas search card berapa pun lebarnya layarnya.
-              (Di 1024 -> top 179px, praktis sama dengan centering; di 1920 -> -5px;
-              di 2560 -> -137px, yang terpotong cuma laut/utara Sumatra yang kosong.)
-            - Jawa tetap aksen hijau di tengah-bawah; topeng radial di dalam SVG mengikuti
-              posisinya, bukan posisi headline. */}
+            Peta full-bleed di SEMUA lebar: rasionya 1000:246,74 (4,05:1) jadi menambah
+            lebar hanya menaikkan sedikit tinggi (di 390px: 90,5 -> 96,2px, +5,7px).
+            Yang menjaga teks tetap terbaca bukan posisi peta, tapi opasitas:
+            - < lg (1024px): IndonesiaMap memakai opasitas "quiet" + topeng radial
+              terpusat. Di 768px kontras piksel tergelap di belakang headline (teks
+              dibuang saat mengukur) 6,56:1 dengan opasitas desktop vs 8,05:1 dengan
+              opasitas quiet; ponsel ~11:1 dan >= lg tidak berubah.
+            - Jangkar atas per breakpoint: top-[124px] / sm:96 / md:77 supaya pita
+              peta jatuh di tengah blok headline (di 390px headline menempati
+              y 159-309, peta 96px -> top 124px), tidak menabrak badge maupun paragraf.
+              Batas bawah peta masih jauh dari kartu pencarian: 291 vs 449 di 414px,
+              331 vs 429 di 768px.
+            - lg ke atas: calc(390px - 20.58vw), bukan centering — 0.834 x 0.24674
+              adalah posisi bawah band Jawa sebagai fraksi lebar viewport, jadi garis
+              Jawa selalu berhenti ~10px di atas search card berapa pun lebarnya. */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none" aria-hidden="true">
           <IndonesiaMap
-          className="absolute top-[124px] left-1/2 -translate-x-1/2 w-[94%] max-w-[420px] h-auto sm:top-[96px] sm:max-w-[460px] md:top-[77px] md:w-[720px] md:max-w-none lg:top-[calc(390px-20.58vw)] lg:left-0 lg:translate-x-0 lg:w-full"
+          className="absolute top-[124px] left-0 w-full h-auto sm:top-[96px] md:top-[77px] lg:top-[calc(390px-20.58vw)]"
             locations={MAP_CITY_LOCATIONS}
             connections={MAP_CITY_CONNECTIONS}
             lineColor="#10b981"
