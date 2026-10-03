@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import prisma, { checkDatabaseConnection } from './prisma.js';
+import { CAMPUS_KEYWORDS, keywordsForCampus } from './campusKeywords.js';
 import { seedUsers, seedKos, seedBookings, seedReviews, seedFavorites } from '../../prisma/seedData.js';
 
 /**
@@ -74,24 +75,7 @@ class MemoryDataStore {
 
     // 3b. Filter Berdasarkan Kampus / Landmark Nasional (Phase 13+)
     if (options.campus || options.landmark) {
-      const target = (options.campus || options.landmark).toLowerCase().trim();
-      const campusKeywordMap = {
-        unsoed: ['unsoed', 'grendeng', 'soeparno', 'karangwangkal', 'kampus', 'hr boenyamin', 'boenyamin', 'purwokerto utara'],
-        ugm: ['ugm', 'gadjah mada', 'kaliurang', 'bulaksumur', 'uny', 'sleman', 'yogyakarta'],
-        ui: ['ui', 'universitas indonesia', 'margonda', 'kukusan', 'pondok cina', 'depok', 'salemba'],
-        itb: ['itb', 'ganesha', 'dago', 'dipatiukur', 'unpad', 'bandung', 'coblong'],
-        ub: ['ub', 'brawijaya', 'soekarno hatta', 'suhat', 'lowokwaru', 'malang', 'polinema'],
-        unair: ['unair', 'airlangga', 'its', 'dharmawangsa', 'gubeng', 'sukolilo', 'surabaya'],
-        undip: ['undip', 'diponegoro', 'tembalang', 'banjarsari', 'pleburan', 'semarang'],
-        bali: ['bali', 'denpasar', 'renon', 'udayana', 'unud', 'jimbaran', 'batanghari'],
-        jakarta: ['jakarta', 'tebet', 'kuningan', 'sudirman', 'jakarta selatan', 'salemba'],
-        ump: ['ump', 'dukuhwaluh', 'raden patah', 'muhammadiyah', 'kembaran'],
-        telkom: ['telkom', 'panjaitan', 'd.i. panjaitan', 'berkoh', 'purwokerto selatan'],
-        uinsaizu: ['uin', 'saizu', 'saifuddin zuhri', 'karangkobar', 'purwokerto barat'],
-        stasiun: ['stasiun', 'kober', 'bantarsoka', 'alun-alun', 'pasar manis']
-      };
-
-      const keywords = campusKeywordMap[target] || [target];
+      const keywords = keywordsForCampus(options.campus || options.landmark);
       result = result.filter(k => {
         const textToSearch = `${k.nama} ${k.alamat} ${k.kota} ${k.deskripsi || ''}`.toLowerCase();
         return keywords.some(kw => textToSearch.includes(kw));
@@ -1529,124 +1513,31 @@ class MemoryDataStore {
 
   // ================= LANDMARK & FACILITY METADATA (PHASE 13) =================
   async getCampusLandmarks() {
+    // Kata kunci TIDAK diulang di sini — sumbernya CAMPUS_KEYWORDS.
     const landmarks = [
-      {
-        id: 'unsoed',
-        nama: 'Universitas Jenderal Soedirman (UNSOED)',
-        kota: 'Purwokerto',
-        area: 'Grendeng & Karangwangkal',
-        keywords: ['unsoed', 'grendeng', 'soeparno', 'karangwangkal', 'kampus', 'hr boenyamin', 'boenyamin'],
-        lat: -7.4243,
-        lng: 109.2486
-      },
-      {
-        id: 'ugm',
-        nama: 'Universitas Gadjah Mada (UGM)',
-        kota: 'Yogyakarta',
-        area: 'Kaliurang, Bulaksumur & Sleman',
-        keywords: ['ugm', 'gadjah mada', 'kaliurang', 'bulaksumur', 'uny', 'sleman', 'yogyakarta'],
-        lat: -7.7602,
-        lng: 110.3804
-      },
-      {
-        id: 'ui',
-        nama: 'Universitas Indonesia (UI Depok & Salemba)',
-        kota: 'Depok / Jakarta',
-        area: 'Margonda, Kukusan & Salemba',
-        keywords: ['ui', 'universitas indonesia', 'margonda', 'kukusan', 'pondok cina', 'depok', 'salemba'],
-        lat: -6.3689,
-        lng: 106.8321
-      },
-      {
-        id: 'itb',
-        nama: 'Institut Teknologi Bandung (ITB & UNPAD)',
-        kota: 'Bandung',
-        area: 'Dago, Ganesha & Dipatiukur',
-        keywords: ['itb', 'ganesha', 'dago', 'dipatiukur', 'unpad', 'bandung', 'coblong'],
-        lat: -6.8789,
-        lng: 107.6189
-      },
-      {
-        id: 'ub',
-        nama: 'Universitas Brawijaya (UB & UM)',
-        kota: 'Malang',
-        area: 'Soekarno Hatta (Suhat) & Lowokwaru',
-        keywords: ['ub', 'brawijaya', 'soekarno hatta', 'suhat', 'lowokwaru', 'malang', 'polinema'],
-        lat: -7.9482,
-        lng: 112.6179
-      },
-      {
-        id: 'unair',
-        nama: 'Universitas Airlangga (UNAIR & ITS)',
-        kota: 'Surabaya',
-        area: 'Gubeng, Dharmawangsa & Sukolilo',
-        keywords: ['unair', 'airlangga', 'its', 'dharmawangsa', 'gubeng', 'sukolilo', 'surabaya'],
-        lat: -7.2721,
-        lng: 112.7562
-      },
-      {
-        id: 'undip',
-        nama: 'Universitas Diponegoro (UNDIP Tembalang)',
-        kota: 'Semarang',
-        area: 'Tembalang & Banjarsari',
-        keywords: ['undip', 'diponegoro', 'tembalang', 'banjarsari', 'pleburan', 'semarang'],
-        lat: -7.0543,
-        lng: 110.4389
-      },
-      {
-        id: 'bali',
-        nama: 'Universitas Udayana (UNUD & Denpasar)',
-        kota: 'Denpasar / Bali',
-        area: 'Renon, Jimbaran & Sanur',
-        keywords: ['bali', 'denpasar', 'renon', 'udayana', 'unud', 'jimbaran', 'batanghari'],
-        lat: -8.6789,
-        lng: 115.2341
-      },
-      {
-        id: 'ump',
-        nama: 'Universitas Muhammadiyah Purwokerto (UMP)',
-        kota: 'Purwokerto',
-        area: 'Dukuhwaluh, Kembaran',
-        keywords: ['ump', 'dukuhwaluh', 'raden patah', 'muhammadiyah', 'kembaran'],
-        lat: -7.4180,
-        lng: 109.2710
-      },
-      {
-        id: 'telkom',
-        nama: 'Telkom University Purwokerto (TUP)',
-        kota: 'Purwokerto',
-        area: 'Jl. D.I. Panjaitan, Purwokerto Selatan',
-        keywords: ['telkom', 'panjaitan', 'd.i. panjaitan', 'berkoh', 'purwokerto selatan'],
-        lat: -7.4420,
-        lng: 109.2550
-      },
-      {
-        id: 'uinsaizu',
-        nama: 'UIN Prof. K.H. Saifuddin Zuhri (UIN Saizu)',
-        kota: 'Purwokerto',
-        area: 'Karangkobar, Purwokerto Barat',
-        keywords: ['uin', 'saizu', 'saifuddin zuhri', 'karangkobar', 'purwokerto barat'],
-        lat: -7.4120,
-        lng: 109.2250
-      },
-      {
-        id: 'stasiun',
-        nama: 'Stasiun Purwokerto & Pusat Kota',
-        kota: 'Purwokerto',
-        area: 'Kober & Alun-Alun Purwokerto',
-        keywords: ['stasiun', 'kober', 'bantarsoka', 'alun-alun', 'pasar manis'],
-        lat: -7.4215,
-        lng: 109.2222
-      }
+      { id: 'unsoed', nama: 'Universitas Jenderal Soedirman (UNSOED)', kota: 'Purwokerto', area: 'Grendeng & Karangwangkal', lat: -7.4243, lng: 109.2486 },
+      { id: 'ugm', nama: 'Universitas Gadjah Mada (UGM)', kota: 'Yogyakarta', area: 'Kaliurang, Bulaksumur & Sleman', lat: -7.7602, lng: 110.3804 },
+      { id: 'ui', nama: 'Universitas Indonesia (UI Depok & Salemba)', kota: 'Depok / Jakarta', area: 'Margonda, Kukusan & Salemba', lat: -6.3689, lng: 106.8321 },
+      { id: 'itb', nama: 'Institut Teknologi Bandung (ITB & UNPAD)', kota: 'Bandung', area: 'Dago, Ganesha & Dipatiukur', lat: -6.8789, lng: 107.6189 },
+      { id: 'ub', nama: 'Universitas Brawijaya (UB & UM)', kota: 'Malang', area: 'Soekarno Hatta (Suhat) & Lowokwaru', lat: -7.9482, lng: 112.6179 },
+      { id: 'unair', nama: 'Universitas Airlangga (UNAIR & ITS)', kota: 'Surabaya', area: 'Gubeng, Dharmawangsa & Sukolilo', lat: -7.2721, lng: 112.7562 },
+      { id: 'undip', nama: 'Universitas Diponegoro (UNDIP Tembalang)', kota: 'Semarang', area: 'Tembalang & Banjarsari', lat: -7.0543, lng: 110.4389 },
+      { id: 'bali', nama: 'Universitas Udayana (UNUD & Denpasar)', kota: 'Denpasar / Bali', area: 'Renon, Jimbaran & Sanur', lat: -8.6789, lng: 115.2341 },
+      { id: 'jakarta', nama: 'Kampus Jakarta Selatan (Tebet & Kuningan)', kota: 'Jakarta Selatan', area: 'Tebet, Kuningan & Sudirman', lat: -6.2437, lng: 106.8429 },
+      { id: 'ump', nama: 'Universitas Muhammadiyah Purwokerto (UMP)', kota: 'Purwokerto', area: 'Dukuhwaluh, Kembaran', lat: -7.4180, lng: 109.2710 },
+      { id: 'telkom', nama: 'Telkom University Purwokerto (TUP)', kota: 'Purwokerto', area: 'Jl. D.I. Panjaitan, Purwokerto Selatan', lat: -7.4420, lng: 109.2550 },
+      { id: 'uinsaizu', nama: 'UIN Prof. K.H. Saifuddin Zuhri (UIN Saizu)', kota: 'Purwokerto', area: 'Karangkobar, Purwokerto Barat', lat: -7.4120, lng: 109.2250 },
+      { id: 'stasiun', nama: 'Stasiun Purwokerto & Pusat Kota', kota: 'Purwokerto', area: 'Kober & Alun-Alun Purwokerto', lat: -7.4215, lng: 109.2222 }
     ];
 
     return landmarks.map(lm => {
+      const keywords = CAMPUS_KEYWORDS[lm.id] || [];
       const count = this.kos.filter(k => {
         if (k.status !== 'ACTIVE') return false;
         const textToSearch = `${k.nama} ${k.alamat} ${k.kota} ${k.deskripsi || ''}`.toLowerCase();
-        return lm.keywords.some(kw => textToSearch.includes(kw));
+        return keywords.some(kw => textToSearch.includes(kw));
       }).length;
-      return { ...lm, totalKos: count };
+      return { ...lm, keywords, totalKos: count };
     });
   }
 
