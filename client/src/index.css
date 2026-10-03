@@ -158,10 +158,22 @@
     animation: sheetItemIn 260ms ease-out both;
   }
 
+  /* Item bar masuk bertahap. Sengaja memakai properti `translate`, bukan
+     `transform`: keyframe dengan fill-mode `both` mengunci transform, dan
+     `active:scale-95` pada tombol tidak akan pernah terlihat. */
+  @keyframes navItemIn {
+    0%   { opacity: 0; translate: 0 10px; }
+    100% { opacity: 1; translate: 0 0; }
+  }
+  .animate-nav-item {
+    animation: navItemIn 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
   /* Penanda rute aktif digeser lewat transform (bukan dipasang ulang di sel
-     lain) supaya pindah antar tab terasa mengalir, bukan berkedip. */
+     lain) supaya pindah antar tab terasa mengalir, bukan berkedip.
+     Overshoot tipis di ujung bikin perpindahannya terasa fisik. */
   .nav-pill {
-    transition: transform 340ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease-out;
+    transition: transform 340ms cubic-bezier(0.34, 1.4, 0.64, 1), opacity 180ms ease-out;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -181,6 +193,7 @@
       animation: none;
     }
     .animate-nav-bar,
+    .animate-nav-item,
     .animate-sheet-up,
     .animate-backdrop,
     .animate-sheet-item {

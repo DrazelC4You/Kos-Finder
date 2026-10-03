@@ -247,32 +247,42 @@ function Navbar() {
 
     {/* Bar navigasi bawah melayang. Sengaja sibling setelah </header>, bukan
         anak dari header: header sticky z-50 membuat stacking context sendiri.
-        z-40 supaya modal dan drawer filter (z-50) tetap menutupinya. */}
-    <nav aria-label="Navigasi utama" className="fixed inset-x-0 bottom-0 z-40 lg:hidden">
-      <div className="animate-nav-bar mx-3 mb-3 rounded-2xl border border-white/70 bg-white/75 backdrop-blur-xl shadow-[0_-2px_28px_rgba(15,23,42,0.12)]">
+        z-40 supaya modal dan drawer filter (z-50) tetap menutupinya.
+        Padding bawah dibungkus di <nav> (bukan mb-3 di dalam) supaya
+        env(safe-area-inset-bottom) ikut menambah jarak di atas home indicator.
+        Label diam pakai slate-600, bukan 500: di atas kaca 60% kontras terburuk
+        label 4,13:1 di /cari dan 4,51:1 di beranda (ambang teks kecil 4,5:1);
+        dengan 600 semuanya 6,58-7,35:1 di tiga latar yang diukur. */}
+    <nav aria-label="Navigasi utama" className="fixed inset-x-0 bottom-0 z-40 lg:hidden pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+      <div className="animate-nav-bar mx-3 rounded-2xl border border-slate-900/[0.06] bg-white/60 backdrop-blur-xl shadow-[0_4px_24px_rgba(15,23,42,0.10)]">
         <div className="relative grid grid-cols-4 py-2">
+          {/* Lingkaran lembut di belakang ikon, bukan kotak seukuran sel: kotak
+              dengan ring-inset adalah bentuk template "glass navbar". */}
           <span
             aria-hidden="true"
-            className="nav-pill absolute top-2 bottom-2 left-0 w-1/4"
+            className="nav-pill absolute top-[7px] left-0 w-1/4"
             style={{ transform: `translateX(${Math.max(0, pillIndex) * 100}%)`, opacity: pillIndex < 0 ? 0 : 1 }}
           >
-            <span className="block h-full mx-1.5 rounded-xl bg-emerald-600/10 ring-1 ring-inset ring-emerald-600/25" />
+            <span className="mx-auto block h-9 w-9 rounded-full bg-emerald-600/[0.12]" />
           </span>
 
           {primaryItems.map((item, idx) => {
             const Icon = item.icon;
             const isActive = idx === pillIndex;
-            const cls = `relative z-10 flex flex-col items-center gap-1 py-1.5 text-[10px] font-semibold transition-transform duration-150 active:scale-90 ${
-              isActive ? 'text-emerald-700' : 'text-slate-500'
+            const cls = `animate-nav-item relative z-10 flex flex-col items-center gap-1 py-1.5 text-[10px] transition-all duration-200 active:scale-95 ${
+              isActive ? 'text-emerald-800 font-semibold' : 'text-slate-600 font-medium'
             }`;
+            const iconCls = `w-5 h-5 transition-transform duration-200 ${isActive ? 'scale-[1.06]' : ''}`;
+            const stagger = { animationDelay: `${40 + idx * 30}ms` };
             return item.to ? (
               <Link
                 key={item.key}
                 to={item.to}
                 aria-current={isActive ? 'page' : undefined}
                 className={cls}
+                style={stagger}
               >
-                <Icon className="w-5 h-5" />
+                <Icon className={iconCls} />
                 <span>{item.label}</span>
               </Link>
             ) : (
@@ -284,8 +294,9 @@ function Navbar() {
                 aria-controls="mobile-nav"
                 aria-label="Buka menu navigasi"
                 className={cls}
+                style={stagger}
               >
-                <Icon className="w-5 h-5" />
+                <Icon className={iconCls} />
                 <span>{item.label}</span>
               </button>
             );
@@ -451,7 +462,7 @@ function Navbar() {
           </div>
 
           {isAuthenticated && (
-            <div className="px-4 pt-5 pb-7">
+            <div className="px-4 pt-5 pb-[max(1.75rem,calc(env(safe-area-inset-bottom)_+_1rem))]">
               <button
                 type="button"
                 onClick={() => { setOpenNav(false); handleLogout(); }}
