@@ -12,8 +12,8 @@ import {
   GraduationCap, CalendarCheck,
   Compass, Loader2, X, AlertCircle, MapPinOff
 } from 'lucide-react';
+import { CAMPUS_PRESETS } from '../data/campuses.js';
 import {
-  DEFAULT_CAMPUS_PRESETS,
   sortRecommendationsByLocation,
   requestUserLocation
 } from '../utils/geolocation.js';
@@ -247,7 +247,7 @@ export default function HomePage() {
   const [loadingLatest, setLoadingLatest] = useState(true);
 
   // Campus & Location recommendations state
-  const [campusList, setCampusList] = useState(DEFAULT_CAMPUS_PRESETS);
+  const [campusList, setCampusList] = useState(CAMPUS_PRESETS);
   const [userCoords, setUserCoords] = useState(null);
   const [locationStatus, setLocationStatus] = useState('idle'); // 'idle' | 'loading' | 'active' | 'error'
   const [locationError, setLocationError] = useState('');
@@ -344,7 +344,7 @@ export default function HomePage() {
         }
       })
       .catch(() => {
-        // Keep DEFAULT_CAMPUS_PRESETS
+        // Keep CAMPUS_PRESETS
       });
   }, []);
 

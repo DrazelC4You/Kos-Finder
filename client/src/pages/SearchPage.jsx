@@ -7,40 +7,12 @@ import {
   Search, SlidersHorizontal, RotateCcw, X, MapPin,
   Bed, GraduationCap, Shield, Coffee, Car, ChevronLeft, ChevronRight
 } from 'lucide-react';
+import { POPULAR_CITIES, CAMPUS_CHIPS, CITY_CHIPS } from '../data/campuses.js';
 
 // ================================================================
-// PHASE 13: CATEGORIZED AMENITIES & CAMPUS LANDMARK PRESETS
+// PHASE 13: CATEGORIZED AMENITIES
+// (katalog kampus & kota ada di src/data/campuses.js)
 // ================================================================
-
-const POPULAR_CITIES = [
-  { id: '', label: 'Semua Kota (Indonesia)' },
-  { id: 'Yogyakarta', label: 'Yogyakarta' },
-  { id: 'Bandung', label: 'Bandung' },
-  { id: 'Surabaya', label: 'Surabaya' },
-  { id: 'Jakarta Selatan', label: 'Jakarta Selatan' },
-  { id: 'Depok', label: 'Depok' },
-  { id: 'Malang', label: 'Malang' },
-  { id: 'Semarang', label: 'Semarang' },
-  { id: 'Denpasar', label: 'Denpasar / Bali' },
-  { id: 'Purwokerto', label: 'Purwokerto' }
-];
-
-// `label` hanya nama kampus; kota diletakkan di `area` supaya tidak menumpuk
-// di judul dan satu kota tidak dominan di seluruh chip.
-const CAMPUS_PRESETS = [
-  { id: '', label: 'Semua Area', area: 'Seluruh Indonesia', icon: MapPin },
-  { id: 'ugm', label: 'UGM & UNY', area: 'Bulaksumur, Jogja', icon: GraduationCap },
-  { id: 'itb', label: 'ITB & UNPAD', area: 'Dago & Dipatiukur, Bandung', icon: GraduationCap },
-  { id: 'ui', label: 'UI', area: 'Margonda, Depok & Salemba', icon: GraduationCap },
-  { id: 'unair', label: 'UNAIR & ITS', area: 'Gubeng & Sukolilo, Surabaya', icon: GraduationCap },
-  { id: 'ub', label: 'UB & UM', area: 'Suhat, Malang', icon: GraduationCap },
-  { id: 'undip', label: 'UNDIP', area: 'Tembalang, Semarang', icon: GraduationCap },
-  { id: 'bali', label: 'Udayana', area: 'Renon & Jimbaran, Bali', icon: GraduationCap },
-  { id: 'unsoed', label: 'UNSOED', area: 'Grendeng, Purwokerto', icon: GraduationCap },
-  { id: 'ump', label: 'UMP', area: 'Dukuhwaluh, Purwokerto', icon: GraduationCap },
-  { id: 'telkom', label: 'Telkom University', area: 'Purwokerto Selatan', icon: GraduationCap },
-  { id: 'uinsaizu', label: 'UIN Saizu', area: 'Karangkobar, Purwokerto', icon: GraduationCap }
-];
 
 const FACILITY_CATEGORIES = [
   {
@@ -236,10 +208,10 @@ export default function SearchPage() {
   // Active filters list for chips
   const activeFilters = [];
   if (debouncedQuery) activeFilters.push({ label: `Kata kunci: "${debouncedQuery}"`, clear: () => setSearchQuery('') });
-  if (city) activeFilters.push({ label: `Kota: ${city}`, clear: () => setCity('') });
+  if (city) activeFilters.push({ label: `Kota: ${POPULAR_CITIES.find(c => c.id === city)?.name || city}`, clear: () => setCity('') });
   if (campus) {
-    const matched = CAMPUS_PRESETS.find(c => c.id === campus);
-    activeFilters.push({ label: `Area: ${matched?.label || campus}`, clear: () => setCampus('') });
+    const matched = CAMPUS_CHIPS.find(c => c.id === campus);
+    activeFilters.push({ label: `Area: ${matched?.name || campus}`, clear: () => setCampus('') });
   }
   if (type) activeFilters.push({ label: `Tipe: ${type}`, clear: () => setType('') });
   if (minPrice) activeFilters.push({ label: `Min: ${formatRupiah(minPrice)}`, clear: () => setMinPrice('') });
@@ -275,8 +247,9 @@ export default function SearchPage() {
           </span>
         </div>
         <div className="flex items-center gap-2.5 overflow-x-auto pb-2 no-scrollbar">
-          {CAMPUS_PRESETS.map((preset) => {
-            const Icon = preset.icon;
+          {CAMPUS_CHIPS.map((preset) => {
+            const Icon = preset.id ? GraduationCap : MapPin;
+            const areaText = preset.city ? `${preset.area}, ${preset.city}` : preset.area;
             const isActive = campus === preset.id;
             return (
               <button
@@ -289,10 +262,10 @@ export default function SearchPage() {
                 }`}
               >
                 <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-white' : 'text-emerald-600'}`} />
-                <span>{preset.label}</span>
-                {preset.area && (
+                <span>{preset.name}</span>
+                {areaText && (
                   <span className={`text-[10px] hidden sm:inline ${isActive ? 'text-emerald-100' : 'text-slate-400'}`}>
-                    ({preset.area})
+                    ({areaText})
                   </span>
                 )}
               </button>
@@ -348,8 +321,8 @@ export default function SearchPage() {
                 onChange={(e) => setCity(e.target.value)}
                 className="w-full p-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-500 bg-white font-medium text-slate-800"
               >
-                {POPULAR_CITIES.map((c) => (
-                  <option key={c.id} value={c.id}>{c.label}</option>
+                {CITY_CHIPS.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
             </div>
@@ -684,8 +657,8 @@ export default function SearchPage() {
                     onChange={(e) => setCity(e.target.value)}
                     className="w-full p-2 text-xs rounded-lg border border-slate-200 bg-white font-medium"
                   >
-                    {POPULAR_CITIES.map((c) => (
-                      <option key={c.id} value={c.id}>{c.label}</option>
+                    {CITY_CHIPS.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
                 </div>
@@ -697,8 +670,8 @@ export default function SearchPage() {
                     onChange={(e) => setCampus(e.target.value)}
                     className="w-full p-2 text-xs rounded-lg border border-slate-200 bg-white"
                   >
-                    {CAMPUS_PRESETS.map((p) => (
-                      <option key={p.id} value={p.id}>{p.label}</option>
+                    {CAMPUS_CHIPS.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
                     ))}
                   </select>
                 </div>
