@@ -37,6 +37,9 @@ services:
       # atau dua-duanya dikosongkan, jangan cuma salah satu.
       - key: VITE_TURNSTILE_SITE_KEY
         sync: false # site key asli dari dashboard Cloudflare Turnstile
+      # Blok kontak FAQ di halaman utama. Kosong = blok tidak dirender.
+      - key: VITE_SUPPORT_EMAIL
+        value: ""
       - key: STORAGE_DRIVER
         value: local
       - key: UPLOAD_DIR

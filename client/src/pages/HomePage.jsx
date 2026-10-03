@@ -228,8 +228,9 @@ const TYPE_OPTIONS = [
   { value: 'PUTRI', label: 'Khusus Putri' },
 ];
 
-// Belum ada alamat support resmi — blok kontak FAQ tidak dirender selama nilai ini kosong.
-const SUPPORT_EMAIL = '';
+// Dibakar saat build (VITE_SUPPORT_EMAIL). Blok kontak FAQ tidak dirender
+// selama nilai ini kosong, jadi alamatnya cukup diisi kalau sudah resmi.
+const SUPPORT_EMAIL = import.meta.env.VITE_SUPPORT_EMAIL || '';
 
 export default function HomePage() {
   const navigate = useNavigate();
