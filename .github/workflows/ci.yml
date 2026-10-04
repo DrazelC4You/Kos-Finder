@@ -7,11 +7,6 @@ on:
 
 # Tiga paket terpisah (root + server + client) karena repo ini tidak memakai
 # npm workspaces — tiap direktori punya package-lock sendiri.
-env:
-  # Guard di server/src/server.js:21 menghentikan boot saat NODE_ENV=production
-  # tanpa PostgreSQL. Test jalan di mode development (memory store), jadi nilai
-  # ini harus eksplisit supaya CI tidak mati dengan exit(1).
-  NODE_ENV: development
 
 jobs:
   check:
@@ -38,6 +33,13 @@ jobs:
         run: npm run prisma:generate --prefix server
 
       - name: Server tests
+        # Guard server/src/server.js:21 menghentikan boot saat
+        # NODE_ENV=production tanpa PostgreSQL, jadi test harus jalan di mode
+        # development (memory store). Ditaruh di level job akan membuat
+        # "vite build" ikut menghasilkan bundle mode dev — terukur 488 kB vs
+        # 277 kB untuk kode yang sama, jadi env-nya khusus langkah ini saja.
+        env:
+          NODE_ENV: development
         run: npm test --prefix server
 
       # Build client adalah satu-satunya pemeriksaan bahwa setiap kelas
