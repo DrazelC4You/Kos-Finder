@@ -356,8 +356,35 @@ export default function TenantDashboardPage() {
     totalBookings: bookings.length,
     activeBookings: bookings.filter(b => b.status === 'APPROVED').length,
     pendingBookings: bookings.filter(b => b.status === 'PENDING').length,
+    completedBookings: bookings.filter(b => b.status === 'COMPLETED').length,
     totalFavorites: favorites.length
   }), [bookings, favorites]);
+
+  // Konvensi tanggal akhir sama dengan server (db.js:1734-1737): tanggalMulai
+  // ditambah durasiBulan.
+  const activeBooking = bookings.find(b => b.status === 'APPROVED' || b.status === 'COMPLETED');
+  const contextLine = (() => {
+    if (status === 'loading') return 'Memuat data Anda…';
+    if (status === 'error') return 'Data gagal dimuat. Coba lagi lewat tombol di bawah.';
+    if (activeBooking) {
+      const end = new Date(activeBooking.tanggalMulai);
+      end.setMonth(end.getMonth() + Number(activeBooking.durasiBulan || 1));
+      return `Sewa berjalan di ${activeBooking.kos?.nama || 'kos Anda'} — berakhir ${end.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}.`;
+    }
+    if (bookings.length) return 'Semua pengajuan sudah punya keputusan. Belum ada sewa berjalan.';
+    return 'Belum ada pengajuan sewa di akun ini.';
+  })();
+
+  // Satu segmen = satu angka = satu filter. Yang nol dibuang: "0 pengajuan ·
+  // 0 aktif · 0 favorit" bukan ringkasan, cuma kebisingan.
+  const segments = [
+    { key: 'pengajuan', value: bookings.length, label: 'pengajuan', to: '/tenant/dashboard?tab=riwayat' },
+    { key: 'aktif', value: stats.activeBookings, label: 'aktif', to: '/tenant/dashboard?tab=riwayat&status=APPROVED' },
+    { key: 'menunggu', value: stats.pendingBookings, label: 'menunggu', to: '/tenant/dashboard?tab=riwayat&status=PENDING', accent: true },
+    { key: 'selesai', value: stats.completedBookings, label: 'selesai', to: '/tenant/dashboard?tab=riwayat&status=COMPLETED' },
+    { key: 'favorit', value: favorites.length, label: 'favorit', to: '/tenant/dashboard?tab=favorit' },
+    { key: 'pembayaran', value: payments.length, label: 'pembayaran', to: '/tenant/dashboard?tab=pembayaran' }
+  ].filter(s => s.value > 0);
 
   // Pengajuan yang masih layak dikirim bukti. Dipakai guard DAN isi form tombol
   // "Kirim Bukti" supaya keduanya tidak bisa berbeda — sebelumnya guard menerima
@@ -438,39 +465,14 @@ export default function TenantDashboardPage() {
         </div>
       )}
 
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-emerald-700 via-teal-700 to-slate-800 rounded-3xl p-6 sm:p-8 text-white mb-8 shadow-sm relative overflow-hidden">
-        <div className="absolute right-0 top-0 translate-x-10 -translate-y-10 w-64 h-64 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-emerald-200 text-xs font-semibold mb-3 border border-white/10 backdrop-blur-sm">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Portal Pencari Kos</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-heading font-extrabold tracking-tight text-white">
-              Halo, {user?.name || 'Pencari Kos'}! 👋
-            </h1>
-            <p className="text-emerald-100/90 text-xs sm:text-sm mt-1 max-w-xl">
-              Pantau status pengajuan sewa kos Anda, kelola kos favorit, dan perbarui profil penyewa dengan mudah.
-            </p>
-          </div>
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <Link
-              to="/chat"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-emerald-800/80 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl border border-emerald-500/30 transition-all shadow-sm"
-            >
-              <MessageSquare className="w-3.5 h-3.5 text-emerald-300" />
-              <span>Buka Pesan & Chat</span>
-            </Link>
-            <Link
-              to="/cari"
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-emerald-900 hover:bg-emerald-50 text-xs font-bold rounded-xl shadow transition-all duration-150"
-            >
-              <span>Jelajahi Kos Lainnya</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </div>
+      {/* Header ringkas — tanpa kartu, gradien, blob, badge, dan emoji. Aksi
+          sengaja nol: /chat dan /cari sudah hidup di nav desktop maupun bar
+          bawah mobile, jadi menaruhnya lagi di sini cuma duplikasi. */}
+      <div className="mb-5">
+        <h1 className="font-heading text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+          Halo, {user?.name?.split(' ')[0] || 'Pencari Kos'}
+        </h1>
+        <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-slate-500">{contextLine}</p>
       </div>
 
       {/* Helper Banner pengisi data contoh — hanya untuk mempercepat uji lokal */}
@@ -500,74 +502,38 @@ export default function TenantDashboardPage() {
         </div>
       )}
 
-      {/* Stats Summary Cards — tidak dirender saat gagal: angka 0 di bawah
-          "Data gagal dimuat" adalah nol bohongan. */}
-      {status !== 'error' && (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div
-          onClick={() => { setActiveTab('riwayat'); setBookingFilter('ALL'); }}
-          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-emerald-300 hover:shadow transition-all cursor-pointer"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Booking</span>
-            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-              <Calendar className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="text-2xl sm:text-3xl font-heading font-extrabold text-slate-900">
-            {status === 'loading' ? <span className="inline-block h-7 w-12 animate-pulse rounded bg-slate-200" /> : stats.totalBookings}
-          </div>
-          <p className="text-[11px] text-slate-400 mt-1">Semua riwayat pengajuan</p>
+      {/* Strip status: satu angka = satu filter, tiap segmen tautan nyata supaya
+          bisa di-tap, di-keyboard, dan di-back. Saat gagal tidak dirender di sini
+          — panel di bawah sudah menampilkan "Data gagal dimuat". */}
+      {status === 'loading' && (
+        <div aria-hidden="true" className="mb-8 flex flex-wrap gap-1 rounded-2xl border border-slate-200 bg-white p-1.5">
+          {[0, 1, 2, 3].map(i => <span key={i} className="h-9 w-20 animate-pulse rounded-lg bg-slate-200" />)}
         </div>
-
-        <div
-          onClick={() => { setActiveTab('riwayat'); setBookingFilter('APPROVED'); }}
-          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-emerald-300 hover:shadow transition-all cursor-pointer"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Booking Disetujui</span>
-            <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <CheckCircle className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="text-2xl sm:text-3xl font-heading font-extrabold text-emerald-600">
-            {status === 'loading' ? <span className="inline-block h-7 w-12 animate-pulse rounded bg-slate-200" /> : stats.activeBookings}
-          </div>
-          <p className="text-[11px] text-emerald-700/70 mt-1">Sewa aktif / terkonfirmasi</p>
-        </div>
-
-        <div
-          onClick={() => { setActiveTab('riwayat'); setBookingFilter('PENDING'); }}
-          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-amber-300 hover:shadow transition-all cursor-pointer"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Menunggu Respon</span>
-            <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-              <Clock className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="text-2xl sm:text-3xl font-heading font-extrabold text-amber-600">
-            {status === 'loading' ? <span className="inline-block h-7 w-12 animate-pulse rounded bg-slate-200" /> : stats.pendingBookings}
-          </div>
-          <p className="text-[11px] text-amber-700/70 mt-1">Menunggu approval pemilik</p>
-        </div>
-
-        <div
-          onClick={() => setActiveTab('favorit')}
-          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-rose-300 hover:shadow transition-all cursor-pointer"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Kos Favorit</span>
-            <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
-              <Heart className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="text-2xl sm:text-3xl font-heading font-extrabold text-rose-600">
-            {status === 'loading' ? <span className="inline-block h-7 w-12 animate-pulse rounded bg-slate-200" /> : stats.totalFavorites}
-          </div>
-          <p className="text-[11px] text-rose-700/70 mt-1">Kos tersimpan di wishlist</p>
-        </div>
-      </div>
+      )}
+      {status === 'ready' && segments.length > 0 && (
+        <nav aria-label="Ringkasan status" className="mb-8 w-fit max-w-full rounded-2xl border border-slate-200 bg-white p-1.5">
+          <ul className="flex flex-wrap items-stretch gap-1">
+            {segments.map((s) => (
+              <li key={s.key}>
+                <Link
+                  to={s.to}
+                  className={`group flex h-full items-baseline gap-1.5 rounded-lg px-2.5 py-2 transition-colors ${
+                    s.accent ? 'bg-amber-50 ring-1 ring-amber-200 hover:bg-amber-100' : 'hover:bg-slate-100'
+                  }`}
+                >
+                  <span className={`font-heading text-base font-bold leading-none tabular-nums ${s.accent ? 'text-amber-900' : 'text-slate-900'}`}>
+                    {s.value}
+                  </span>
+                  {/* slate-500 di atas slate-50 lolos 4,5:1 tapi di atas slate-100
+                      (latar hover) jatuh ke 4,34:1, jadi labelnya ikut menggelap. */}
+                  <span className={`text-xs ${s.accent ? 'text-amber-800' : 'text-slate-500 group-hover:text-slate-700'}`}>
+                    {s.label}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
       )}
 
       {/* Tabs Navigation — sama seperti dasbor pemilik: sticky di bawah navbar,
