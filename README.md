@@ -23,7 +23,7 @@ Aplikasi full-stack untuk mencari kos (pencari), mengelola properti kos (pemilik
 │   ├── src/services/api.js # Axios instance + interceptor Bearer token
 │   └── scripts/            # generate-indonesia-map.mjs (npm run generate:map)
 ├── server/
-│   ├── prisma/             # schema.prisma (11 model), seed.js, seedData.js (12 kos)
+│   ├── prisma/             # schema.prisma (12 model), seed.js, seedData.js (12 kos)
 │   └── src/
 │       ├── controllers/    # auth, kos, tenant, owner, admin, chat, review, upload, dll.
 │       ├── routes/         # Mounting /api/*

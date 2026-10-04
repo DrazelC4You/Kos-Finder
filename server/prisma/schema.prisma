@@ -56,6 +56,12 @@ enum ReportStatus {
   DISMISSED
 }
 
+enum PaymentStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
+
 enum NotificationType {
   BOOKING_NEW
   BOOKING_APPROVED
@@ -98,6 +104,10 @@ model User {
   tenantConversations Conversation[] @relation("TenantConversations")
   ownerConversations  Conversation[] @relation("OwnerConversations")
   messagesSent        Message[]      @relation("SentMessages")
+
+  // Pembayaran: satu user bisa jadi penyewa sekaligus pemilik pada kos berbeda
+  paymentsAsTenant Payment[] @relation("PaymentTenant")
+  paymentsAsOwner  Payment[] @relation("PaymentOwner")
 
   @@index([email])
   @@index([role])
@@ -149,6 +159,7 @@ model Kos {
   reviews       Review[]
   conversations Conversation[]
   reports       Report[]
+  payments      Payment[]
 
   @@index([kota])
   @@index([status])
@@ -207,6 +218,8 @@ model Booking {
   catatan      String?       @db.Text
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+
+  payments Payment[]
 
   @@index([tenantId])
   @@index([kosId])
@@ -293,5 +306,35 @@ model Report {
   createdAt   DateTime     @default(now())
 
   @@index([kosId])
+  @@index([status])
+}
+
+// 12. PAYMENT
+// Bukti transfer penyewa + keputusan pemilik. Tanpa model ini jalur Prisma di
+// db.js tidak punya tempat menyimpan pembayaran: semuanya hanya hidup di
+// memory store dan hilang saat restart.
+model Payment {
+  id               String        @id @default(uuid())
+  bookingId        String
+  booking          Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  tenantId         String
+  tenant           User          @relation("PaymentTenant", fields: [tenantId], references: [id], onDelete: Cascade)
+  ownerId          String
+  owner            User          @relation("PaymentOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  kosId            String
+  kos              Kos           @relation(fields: [kosId], references: [id], onDelete: Cascade)
+  metodePembayaran String
+  namaRekening     String
+  nomorRekening    String
+  jumlahTransfer   Decimal       @db.Decimal(12, 2)
+  catatan          String?       @db.Text
+  status           PaymentStatus @default(PENDING)
+  alasanPenolakan  String        @default("")
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([tenantId])
+  @@index([ownerId])
+  @@index([bookingId])
   @@index([status])
 }

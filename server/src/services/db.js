@@ -7,6 +7,7 @@ import {
   applyJsPostFilters,
   needsJsPostFilter
 } from './kosFilters.js';
+import { computeOwnerFinancialSummary } from './financialSummary.js';
 import { seedUsers, seedKos, seedBookings, seedReviews, seedFavorites } from '../../prisma/seedData.js';
 
 /**
@@ -1349,7 +1350,12 @@ class MemoryDataStore {
   }
 
   async getPaymentByBookingId(bookingId, userId) {
-    const payment = this.payments.find(p => p.bookingId === bookingId);
+    // Bukti transfer TERAKHIR: setelah pembayaran ditolak penyewa bisa mengirim
+    // ulang, dan mengambil yang pertama akan menampilkan bukti lama yang sudah
+    // ditolak. Sama seperti orderBy createdAt desc di jalur Prisma.
+    const payment = this.payments
+      .filter(p => p.bookingId === bookingId)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
     if (!payment) return null;
 
     const booking = this.bookings.find(b => b.id === bookingId);
@@ -1447,41 +1453,7 @@ class MemoryDataStore {
   }
 
   async getOwnerFinancialSummary(ownerId) {
-    const ownerKosIds = this.kos.filter(k => k.ownerId === ownerId).map(k => k.id);
-    const ownerPayments = this.payments.filter(p => p.ownerId === ownerId);
-
-    const confirmed = ownerPayments.filter(p => p.status === 'CONFIRMED');
-    const pending = ownerPayments.filter(p => p.status === 'PENDING');
-    const rejected = ownerPayments.filter(p => p.status === 'REJECTED');
-
-    const totalPendapatan = confirmed.reduce((sum, p) => sum + Number(p.jumlahTransfer), 0);
-    const menungguKonfirmasi = pending.reduce((sum, p) => sum + Number(p.jumlahTransfer), 0);
-
-    // Per-bulan summary (last 6 months)
-    const now = new Date();
-    const monthlyData = [];
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const label = d.toLocaleDateString('id-ID', { month: 'short', year: 'numeric' });
-      const monthPayments = confirmed.filter(p => {
-        const pd = new Date(p.updatedAt);
-        return pd.getMonth() === d.getMonth() && pd.getFullYear() === d.getFullYear();
-      });
-      monthlyData.push({
-        bulan: label,
-        pendapatan: monthPayments.reduce((sum, p) => sum + Number(p.jumlahTransfer), 0),
-        jumlahTransaksi: monthPayments.length
-      });
-    }
-
-    return {
-      totalPendapatan,
-      menungguKonfirmasi,
-      totalTransaksiKonfirmasi: confirmed.length,
-      totalTransaksiPending: pending.length,
-      totalTransaksiDitolak: rejected.length,
-      monthlyData
-    };
+    return computeOwnerFinancialSummary(this.payments.filter(p => p.ownerId === ownerId));
   }
 
   // ================= LANDMARK & FACILITY METADATA (PHASE 13) =================
@@ -3319,28 +3291,170 @@ export const db = {
 
   // ================= PAYMENT METHODS =================
 
-  async createPayment(params) {
-    // Payment belum ada di schema Prisma; selalu gunakan memoryStore
-    return await memoryStore.createPayment(params);
+  async createPayment({ bookingId, tenantId, metodePembayaran, namaRekening, nomorRekening, jumlahTransfer, catatan }) {
+    const { isPostgres } = await getDatabaseStatus();
+    if (isPostgres) {
+      const booking = await prisma.booking.findUnique({
+        where: { id: bookingId },
+        include: { kos: { select: { id: true, nama: true, kota: true, ownerId: true } } }
+      });
+      if (!booking) throw new Error('Booking tidak ditemukan');
+      if (booking.tenantId !== tenantId) throw new Error('Anda tidak memiliki akses ke booking ini');
+      if (!['PENDING', 'APPROVED'].includes(booking.status)) {
+        throw new Error('Pembayaran hanya bisa dikirim untuk booking yang masih aktif');
+      }
+      const existing = await prisma.payment.findFirst({ where: { bookingId, status: 'PENDING' } });
+      if (existing) throw new Error('Sudah ada bukti pembayaran yang sedang menunggu konfirmasi');
+
+      const kos = booking.kos;
+      const payment = await prisma.payment.create({
+        data: {
+          bookingId,
+          tenantId,
+          ownerId: kos.ownerId,
+          kosId: booking.kosId,
+          metodePembayaran,
+          namaRekening,
+          nomorRekening,
+          jumlahTransfer,
+          catatan: catatan || null
+        }
+      });
+
+      if (kos.ownerId) {
+        const tenant = await prisma.user.findUnique({ where: { id: tenantId }, select: { name: true } });
+        await db.createNotification({
+          userId: kos.ownerId,
+          title: '💰 Bukti Pembayaran Masuk',
+          message: `${tenant?.name || 'Penyewa'} mengirim bukti transfer Rp${Number(jumlahTransfer).toLocaleString('id-ID')} untuk kos "${kos.nama}". Silakan konfirmasi.`,
+          type: 'BOOKING_NEW',
+          link: '/owner/dashboard?tab=pembayaran'
+        });
+      }
+
+      return { ...payment, booking, kos: { id: kos.id, nama: kos.nama, kota: kos.kota } };
+    }
+    return await memoryStore.createPayment({ bookingId, tenantId, metodePembayaran, namaRekening, nomorRekening, jumlahTransfer, catatan });
   },
 
   async getPaymentByBookingId(bookingId, userId) {
+    const { isPostgres } = await getDatabaseStatus();
+    if (isPostgres) {
+      // createdAt desc = bukti transfer terakhir. Jalur memory pernah mengambil
+      // yang pertama, sehingga bukti yang sudah ditolak tetap tampil setelah
+      // penyewa mengirim ulang.
+      const payment = await prisma.payment.findFirst({
+        where: { bookingId },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          booking: true,
+          kos: { select: { id: true, nama: true, kota: true, ownerId: true } },
+          tenant: { select: { id: true, name: true, phone: true } }
+        }
+      });
+      if (!payment) return null;
+      if (payment.tenantId !== userId && payment.kos?.ownerId !== userId) return null;
+      const { kos, ...rest } = payment;
+      return { ...rest, kos: { id: kos.id, nama: kos.nama, kota: kos.kota } };
+    }
     return await memoryStore.getPaymentByBookingId(bookingId, userId);
   },
 
   async getPaymentsByTenantId(tenantId) {
+    const { isPostgres } = await getDatabaseStatus();
+    if (isPostgres) {
+      return await prisma.payment.findMany({
+        where: { tenantId },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          kos: { select: { id: true, nama: true, kota: true, foto: true } },
+          booking: { select: { id: true, tanggalMulai: true, durasiBulan: true, totalHarga: true } }
+        }
+      });
+    }
     return await memoryStore.getPaymentsByTenantId(tenantId);
   },
 
   async getPaymentsByOwnerId(ownerId) {
+    const { isPostgres } = await getDatabaseStatus();
+    if (isPostgres) {
+      return await prisma.payment.findMany({
+        where: { ownerId },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          kos: { select: { id: true, nama: true, kota: true, foto: true } },
+          booking: { select: { id: true, tanggalMulai: true, durasiBulan: true, totalHarga: true } },
+          tenant: { select: { id: true, name: true, phone: true, avatar: true } }
+        }
+      });
+    }
     return await memoryStore.getPaymentsByOwnerId(ownerId);
   },
 
   async processPaymentConfirmation(paymentId, ownerId, action, alasanPenolakan) {
+    const { isPostgres } = await getDatabaseStatus();
+    if (isPostgres) {
+      const payment = await prisma.payment.findUnique({
+        where: { id: paymentId },
+        include: { kos: { select: { id: true, nama: true, ownerId: true } } }
+      });
+      if (!payment) return null;
+      if (payment.ownerId !== ownerId) return null;
+      if (payment.status !== 'PENDING') throw new Error('Pembayaran sudah diproses sebelumnya');
+
+      const confirmed = action === 'confirm';
+      const updated = await prisma.payment.update({
+        where: { id: paymentId },
+        data: {
+          status: confirmed ? 'CONFIRMED' : 'REJECTED',
+          alasanPenolakan: confirmed ? payment.alasanPenolakan : (alasanPenolakan || '')
+        }
+      });
+
+      if (confirmed) {
+        await prisma.booking.update({
+          where: { id: payment.bookingId },
+          data: { status: 'COMPLETED' }
+        });
+      }
+
+      const tenant = await prisma.user.findUnique({ where: { id: payment.tenantId }, select: { id: true, name: true } });
+      await db.createNotification(confirmed
+        ? {
+            userId: payment.tenantId,
+            title: '✅ Pembayaran Dikonfirmasi!',
+            message: `Pembayaran Anda sebesar Rp${Number(payment.jumlahTransfer).toLocaleString('id-ID')} untuk kos "${payment.kos?.nama}" telah dikonfirmasi. Selamat datang sebagai penghuni!`,
+            type: 'BOOKING_APPROVED',
+            link: '/tenant/dashboard?tab=riwayat'
+          }
+        : {
+            userId: payment.tenantId,
+            title: '❌ Pembayaran Ditolak',
+            message: `Bukti pembayaran Anda untuk kos "${payment.kos?.nama}" ditolak.${alasanPenolakan ? ` Alasan: ${alasanPenolakan}` : ''} Silakan kirim ulang bukti yang benar.`,
+            type: 'BOOKING_REJECTED',
+            link: '/tenant/dashboard?tab=pembayaran'
+          });
+
+      const booking = await prisma.booking.findUnique({ where: { id: payment.bookingId } });
+      return {
+        ...updated,
+        booking,
+        kos: payment.kos ? { id: payment.kos.id, nama: payment.kos.nama } : null,
+        tenant: tenant ? { id: tenant.id, name: tenant.name } : null
+      };
+    }
     return await memoryStore.processPaymentConfirmation(paymentId, ownerId, action, alasanPenolakan);
   },
 
   async getOwnerFinancialSummary(ownerId) {
+    const { isPostgres } = await getDatabaseStatus();
+    if (isPostgres) {
+      const payments = await prisma.payment.findMany({
+        where: { ownerId },
+        select: { status: true, jumlahTransfer: true, updatedAt: true }
+      });
+      return computeOwnerFinancialSummary(payments);
+    }
     return await memoryStore.getOwnerFinancialSummary(ownerId);
   },
 

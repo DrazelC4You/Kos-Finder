@@ -17,29 +17,18 @@ process.env.NODE_ENV = 'test';
 
 const prisma = (await import('../src/services/prisma.js')).default;
 const { db, memoryStore } = await import('../src/services/db.js');
+const { createPatcher } = await import('./patchPrisma.js');
 
-/**
- * mock.method() tidak bisa dipakai pada delegate model Prisma: proxy-nya
- * mengembalikan descriptor { writable, enumerable, configurable } tanpa `value`,
- * jadi node:test menyimpulkan method-nya undefined. Penulisan properti biasa
- * justru jalan, jadi patch manual dengan pemulihan eksplisit.
- */
-const patched = [];
-function patch(obj, name, fn) {
-  patched.push({ obj, name, original: obj[name] });
-  obj[name] = fn;
-}
-afterEach(() => {
-  while (patched.length) {
-    const { obj, name, original } = patched.pop();
-    obj[name] = original;
-  }
-  mock.reset();
-});
+const { patch, restore } = createPatcher();
 
 // isPostgresAvailable di-cache pada pemanggilan pertama, jadi probe harus
 // sudah di-mock sebelum SATU juga pemanggilan db.* terjadi di file ini.
 mock.method(prisma, '$queryRaw', async () => [{ ok: 1 }]);
+
+afterEach(() => {
+  restore();
+  mock.reset();
+});
 
 const idsOf = (rows) => rows.map(k => k.id);
 
