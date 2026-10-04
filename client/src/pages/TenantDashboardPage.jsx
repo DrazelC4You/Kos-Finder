@@ -75,54 +75,47 @@ function PanelState({ status, error, onRetry, skeleton, children }) {
   return children;
 }
 
-function getStatusBadge(status) {
-  switch (status) {
-    case 'APPROVED':
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
-          <CheckCircle className="w-3.5 h-3.5" />
-          Disetujui / Aktif
-        </span>
-      );
-    // Sewa yang sudah dibayar dan dikonfirmasi pemilik. Server memakai status
-    // ini (db.js processPaymentConfirmation) dan tetap mengizinkan SPK,
-    // kwitansi, serta perpanjangan — tanpanya case ini enum mentah "COMPLETED"
-    // tercetak dan ketiga aksi itu hilang.
-    case 'COMPLETED':
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
-          <BadgeCheck className="w-3.5 h-3.5" />
-          Selesai / Lunas
-        </span>
-      );
-    case 'PENDING':
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
-          <Clock className="w-3.5 h-3.5" />
-          Menunggu Konfirmasi
-        </span>
-      );
-    case 'REJECTED':
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-200">
-          <XCircle className="w-3.5 h-3.5" />
-          Ditolak
-        </span>
-      );
-    case 'CANCELLED':
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-          <AlertCircle className="w-3.5 h-3.5" />
-          Dibatalkan
-        </span>
-      );
-    default:
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
-          {status}
-        </span>
-      );
+// Satu peta status untuk badge booking MAUPUN pembayaran. Sebelumnya keduanya
+// punya implementasi sendiri — sebuah switch untuk booking dan tiga blok JSX
+// inline untuk pembayaran — sehingga menambah status baru harus diingat di dua
+// tempat. Itulah cara COMPLETED lolos dari UI.
+const STATUS_TONE = {
+  amber: { pill: "bg-amber-100 text-amber-800 border-amber-200", icon: "text-amber-600" },
+  emerald: { pill: "bg-emerald-100 text-emerald-800 border-emerald-200", icon: "text-emerald-600" },
+  rose: { pill: "bg-rose-100 text-rose-800 border-rose-200", icon: "text-rose-600" },
+  slate: { pill: "bg-slate-100 text-slate-700 border-slate-200", icon: "text-slate-500" }
+};
+
+const STATUS_META = {
+  "booking:PENDING": { label: "Menunggu Konfirmasi", icon: Clock, tone: "amber" },
+  "booking:APPROVED": { label: "Disetujui / Aktif", icon: CheckCircle, tone: "emerald" },
+  // Sewa yang sudah dibayar dan dikonfirmasi pemilik. Server tetap mengizinkan
+  // SPK, kwitansi, dan perpanjangan untuk status ini.
+  "booking:COMPLETED": { label: "Selesai / Lunas", icon: BadgeCheck, tone: "emerald" },
+  "booking:REJECTED": { label: "Ditolak", icon: CircleX, tone: "rose" },
+  "booking:CANCELLED": { label: "Dibatalkan", icon: AlertCircle, tone: "slate" },
+  "payment:PENDING": { label: "Menunggu Verifikasi Pemilik", icon: Clock, tone: "amber" },
+  "payment:CONFIRMED": { label: "Dikonfirmasi (Lunas)", icon: BadgeCheck, tone: "emerald" },
+  "payment:REJECTED": { label: "Ditolak", icon: CircleX, tone: "rose" }
+};
+
+function StatusBadge({ kind, status }) {
+  const meta = STATUS_META[`${kind}:${status}`];
+  if (!meta) {
+    // Status yang belum dipetakan tetap ditampilkan apa adanya, bukan hilang.
+    return (
+      <span className="rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-[11px] font-bold text-slate-700">
+        {status}
+      </span>
+    );
   }
+  const Icon = meta.icon;
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${STATUS_TONE[meta.tone].pill}`}>
+      <Icon className={`w-3.5 h-3.5 ${STATUS_TONE[meta.tone].icon}`} />
+      {meta.label}
+    </span>
+  );
 }
 
 const FALLBACK_FOTO = 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=500';
@@ -157,7 +150,7 @@ function BookingCard({ booking: b, compact = false, onAgreement, onInvoice, onEx
               <Link to={`/kos/${b.kosId}`} className="hover:text-emerald-600">{b.kos?.nama}</Link>
             </h3>
           </div>
-          {getStatusBadge(b.status)}
+          <StatusBadge kind="booking" status={b.status} />
         </div>
 
         <p className="text-slate-500 flex items-center gap-1.5">
@@ -819,21 +812,11 @@ export default function TenantDashboardPage() {
               <p className="text-xs text-slate-500 mb-4">Coba ubah filter atau ajukan sewa kos baru.</p>
               {bookings.length === 0 ? (
                 <div className="flex flex-wrap items-center justify-center gap-3">
-                  {SHOW_DEMO_TOOLS && (
-                    <button
-                      type="button"
-                      onClick={handleLoadDemoData}
-                      className="px-4 py-2 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-sm transition-all inline-flex items-center gap-1.5"
-                    >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>Muat Data Contoh (Demo)</span>
-                    </button>
-                  )}
                   <Link
                     to="/cari"
-                    className="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm"
+                    className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-emerald-700"
                   >
-                    Mulai Cari Kos Sekarang
+                    Mulai cari kos
                   </Link>
                 </div>
               ) : (
@@ -859,7 +842,7 @@ export default function TenantDashboardPage() {
               {favorites.map((fav) => (
                 <div
                   key={fav.id}
-                  className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow"
+                  className="flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white transition-colors hover:border-slate-300"
                 >
                   <div className="relative">
                     <img
@@ -937,7 +920,7 @@ export default function TenantDashboardPage() {
 
       {/* TAB CONTENT: 4. PROFIL SAYA */}
       {activeTab === 'profil' && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
           <div className="flex items-center gap-3 pb-6 border-b border-slate-100 mb-6">
             <img
               src={user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user?.name || 'Tenant')}`}
@@ -1065,7 +1048,7 @@ export default function TenantDashboardPage() {
       {activeTab === 'pembayaran' && (
         <PanelState status={paymentsStatus} onRetry={fetchDashboardData}>
         <div className="space-y-6">
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
                 <h3 className="font-heading font-bold text-lg text-slate-900 flex items-center gap-2">
@@ -1108,29 +1091,12 @@ export default function TenantDashboardPage() {
             ) : (
               <div className="space-y-3">
                 {payments.map(p => (
-                  <div key={p.id} className="border border-slate-200 rounded-xl p-4 sm:p-5 hover:border-emerald-200 transition-all bg-white shadow-sm">
+                  <div key={p.id} className="rounded-xl border border-slate-200 bg-white p-4 transition-colors hover:border-emerald-300 sm:p-5">
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-bold text-slate-900 text-sm">{p.kos?.nama || 'Kos'}</span>
-                          {p.status === 'CONFIRMED' && (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-                              <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" />
-                              Dikonfirmasi (Lunas)
-                            </span>
-                          )}
-                          {p.status === 'PENDING' && (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
-                              <Clock className="w-3.5 h-3.5 text-amber-600" />
-                              Menunggu Verifikasi Pemilik
-                            </span>
-                          )}
-                          {p.status === 'REJECTED' && (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200">
-                              <CircleX className="w-3.5 h-3.5 text-rose-600" />
-                              Ditolak
-                            </span>
-                          )}
+                          <StatusBadge kind="payment" status={p.status} />
                         </div>
                         <p className="text-xs text-slate-500">{p.kos?.kota} • Metode: <strong className="text-slate-700">{p.metodePembayaran}</strong></p>
                         <p className="text-xs text-slate-500">
