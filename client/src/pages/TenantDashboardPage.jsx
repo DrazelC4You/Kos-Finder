@@ -347,6 +347,13 @@ export default function TenantDashboardPage() {
     totalFavorites: favorites.length
   }), [bookings, favorites]);
 
+  // Pengajuan yang masih layak dikirim bukti. Dipakai guard DAN isi form tombol
+  // "Kirim Bukti" supaya keduanya tidak bisa berbeda — sebelumnya guard menerima
+  // APPROVED|PENDING tapi form diisi `find(APPROVED) || bookings[0]`, sehingga
+  // booking terbaru yang sudah BATAL/DITOLAK bisa membuka form dengan nominal
+  // dari sewa yang mati.
+  const payableBookings = bookings.filter(b => b.status === 'APPROVED' || b.status === 'PENDING');
+
   // Filtered Bookings
   const filteredBookings = bookings.filter(b => {
     if (bookingFilter === 'ALL') return true;
@@ -360,6 +367,17 @@ export default function TenantDashboardPage() {
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
             <CheckCircle className="w-3.5 h-3.5" />
             Disetujui / Aktif
+          </span>
+        );
+      // Sewa yang sudah dibayar dan dikonfirmasi pemilik. Server memakai status
+      // ini (db.js processPaymentConfirmation) dan tetap mengizinkan SPK,
+      // kwitansi, serta perpanjangan — tanpanya case ini enum mentah "COMPLETED"
+      // tercetak dan ketiga aksi itu hilang.
+      case 'COMPLETED':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+            <BadgeCheck className="w-3.5 h-3.5" />
+            Selesai / Lunas
           </span>
         );
       case 'PENDING':
@@ -751,6 +769,7 @@ export default function TenantDashboardPage() {
               { key: 'ALL', label: 'Semua Status' },
               { key: 'PENDING', label: 'Menunggu Konfirmasi' },
               { key: 'APPROVED', label: 'Disetujui' },
+              { key: 'COMPLETED', label: 'Selesai / Lunas' },
               { key: 'CANCELLED', label: 'Dibatalkan' },
               { key: 'REJECTED', label: 'Ditolak' }
             ].map(f => (
@@ -850,7 +869,7 @@ export default function TenantDashboardPage() {
                       </div>
 
                       <div className="flex items-center gap-2 flex-wrap">
-                        {b.status === 'APPROVED' && (
+                        {['APPROVED', 'COMPLETED'].includes(b.status) && (
                           <>
                             <button
                               onClick={() => setSelectedAgreementBookingId(b.id)}
@@ -1185,20 +1204,18 @@ export default function TenantDashboardPage() {
                   Pantau status verifikasi pembayaran transfer dan konfirmasi dari pemilik kos.
                 </p>
               </div>
-              {bookings.filter(b => b.status === 'APPROVED' || b.status === 'PENDING').length > 0 && (
+              {payableBookings.length > 0 && (
                 <button
                   onClick={() => {
-                    const b = bookings.find(x => x.status === 'APPROVED') || bookings[0];
-                    if (b) {
-                      setPaymentModal(b);
-                      setPaymentForm({
-                        metodePembayaran: 'Transfer Bank BCA',
-                        namaRekening: user?.name || '',
-                        nomorRekening: '',
-                        jumlahTransfer: b.totalHarga || '',
-                        catatan: `Pembayaran sewa ${b.kos?.nama}`
-                      });
-                    }
+                    const b = payableBookings[0];
+                    setPaymentModal(b);
+                    setPaymentForm({
+                      metodePembayaran: 'Transfer Bank BCA',
+                      namaRekening: user?.name || '',
+                      nomorRekening: '',
+                      jumlahTransfer: b.totalHarga || '',
+                      catatan: `Pembayaran sewa ${b.kos?.nama}`
+                    });
                   }}
                   className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all"
                 >
