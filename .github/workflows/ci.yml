@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Tiga paket terpisah (root + server + client) karena repo ini tidak memakai
+# npm workspaces — tiap direktori punya package-lock sendiri.
+env:
+  # Guard di server/src/server.js:21 menghentikan boot saat NODE_ENV=production
+  # tanpa PostgreSQL. Test jalan di mode development (memory store), jadi nilai
+  # ini harus eksplisit supaya CI tidak mati dengan exit(1).
+  NODE_ENV: development
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            server/package-lock.json
+            client/package-lock.json
+
+      - run: npm ci
+      - run: npm ci --prefix server
+      - run: npm ci --prefix client
+
+      # @prisma/client melempar error saat di-import kalau client-nya belum
+      # di-generate, dan server/src/services/db.js mengimpornya secara langsung.
+      - name: Generate Prisma Client
+        run: npm run prisma:generate --prefix server
+
+      - name: Server tests
+        run: npm test --prefix server
+
+      # Build client adalah satu-satunya pemeriksaan bahwa setiap kelas
+      # Tailwind yang dipakai benar-benar ter-generate dan tidak ada impor
+      # yang rusak setelah code splitting.
+      - name: Client build
+        run: npm run build --prefix client

@@ -2,6 +2,8 @@
 
 Aplikasi full-stack untuk mencari kos (pencari), mengelola properti kos (pemilik), dan memoderasi platform (admin). Dibangun dengan React + Express + PostgreSQL/Prisma dengan fallback penyimpanan in-memory untuk development tanpa database.
 
+[![CI](https://github.com/DrazelC4You/Kos-Finder/actions/workflows/ci.yml/badge.svg)](https://github.com/DrazelC4You/Kos-Finder/actions/workflows/ci.yml)
+
 ## Tech Stack
 
 | Lapisan | Teknologi |
@@ -35,18 +37,37 @@ Aplikasi full-stack untuk mencari kos (pencari), mengelola properti kos (pemilik
 Prasyarat: **Node.js 22 LTS** (dipakai di `engines`, `.node-version`, dan `render.yaml`).
 
 ```bash
-# 1. Install dependensi
-cd server && npm install
-cd ../client && npm install
+# 1. Install dependensi di ketiga paket (root + server + client)
+npm run install:all
 
 # 2. Siapkan environment
-cp ../.env.example server/.env      # lalu sesuaikan nilainya
+cp .env.example server/.env           # lalu sesuaikan nilainya
 # (opsional) buat client/.env untuk VITE_* vars
 
-# 3. Jalankan (dua terminal)
-cd server && npm run dev            # API di http://localhost:5000
-cd client && npm run dev            # Web di http://localhost:5173
+# 3. Jalankan server API + Vite sekaligus dari root
+npm run dev
 ```
+
+Buka **http://localhost:5173** (Vite). Port 5000 adalah Express API-nya — di development ia sengaja tidak menyajikan frontend (`server/src/app.js:87` hanya melayani `client/dist` saat `NODE_ENV=production`), jadi membuka `:5000` akan tampak kosong.
+
+### Kalau perubahan tidak muncul di layar
+
+Berurutan dari yang paling sering terjadi:
+
+1. **Branch.** `git rev-parse --abbrev-ref HEAD` harus `main`. Branch lama bisa tertinggal puluhan commit tanpa terasa.
+2. **Belum pull.** Push ke GitHub tidak mengubah working copy siapa pun.
+3. **Dev server perlu restart.** `npm run dev` yang hidup berjam-jam menyajikan konteks Tailwind JIT yang basi: markup berubah tapi kelas utility baru tidak ter-generate. Ctrl+C lalu jalankan ulang; kalau masih bandel `rm -rf client/node_modules/.vite`.
+4. **`NODE_ENV=production` di shell.** npm melewati devDependencies saat `install`, jadi Vite/nodemon tidak terpasang dan `npm run dev` gagal setengah jalan. Set `NODE_ENV=development` sebelum install.
+5. **Perubahan khusus mobile.** Bar navigasi bawah hanya dirender di bawah `lg` (1024px). Cek pakai responsive mode, bukan jendela desktop penuh.
+
+## Test & CI
+
+```bash
+npm test --prefix server              # 29 test API + katalog kampus (node:test)
+npm run build --prefix client         # pastikan semua kelas Tailwind benar-benar ter-generate
+```
+
+`.github/workflows/ci.yml` menjalankan keduanya di setiap push ke `main` dan setiap pull request, dengan `NODE_ENV=development` (guard `server/src/server.js:21` menghentikan boot produksi tanpa PostgreSQL).
 
 ## Database Setup (PostgreSQL)
 
@@ -55,12 +76,14 @@ Aplikasi **otomatis memakai in-memory store berisi data seed** bila PostgreSQL t
 ```bash
 cd server
 # 1. Pastikan PostgreSQL berjalan dan DATABASE_URL di server/.env benar
-# 2. Generate client & migrasi
+# 2. Generate client, lalu terapkan skema
 npm run prisma:generate
-npm run prisma:migrate
+npx prisma db push          # repo ini tidak menyimpan folder migrations/
 # 3. Isi data awal (12 kos, 4 user demo, kamar, booking, ulasan)
 npm run prisma:seed
 ```
+
+`npm start` (produksi) sudah menjalankan `prisma db push --skip-generate` sebelum boot, jadi skema ikut tersinkron di deploy. Catatan: `prisma:migrate` (`migrate dev`) tersedia tapi belum dipakai — tidak ada riwayat migrasi di repo, jadi jangan campur `migrate` dan `db push` pada satu database.
 
 ## Demo Account
 
