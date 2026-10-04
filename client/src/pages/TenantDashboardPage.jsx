@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Calendar, CheckCircle, Clock, Heart, MapPin,
@@ -18,28 +18,77 @@ import OfficialInvoiceModal from '../components/OfficialInvoiceModal.jsx';
 // ter-strip dari bundle produksi.
 const SHOW_DEMO_TOOLS = import.meta.env.DEV;
 
+// Nilai ?tab= di luar daftar ini harus di-fallback, bukan dipercaya apa adanya:
+// tiap panel dicocokkan dengan `activeTab === '...'`, jadi satu karakter salah
+// membuat halaman menampilkan bar tab tanpa konten sama sekali.
+const TAB_KEYS = ['ringkasan', 'riwayat', 'favorit', 'profil', 'pembayaran'];
+
+/**
+ * Panel data tidak boleh memutuskan "kosong" sebelum datanya benar-benar tiba.
+ * Sebelumnya kegagalan fetch hanya jadi console.error + toast 3,5 detik sehingga
+ * ringkasan menulis "Belum Ada Pengajuan Sewa" untuk koneksi yang mati.
+ */
+function FailedPanel({ message, onRetry }) {
+  return (
+    <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h3 className="font-heading text-sm font-bold text-slate-900">Data gagal dimuat</h3>
+        <p className="mt-1 text-xs text-slate-500">{message || 'Periksa koneksi Anda, lalu coba lagi.'}</p>
+      </div>
+      <button
+        type="button"
+        onClick={onRetry}
+        className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-200"
+      >
+        <RefreshCw className="w-3.5 h-3.5" />
+        <span>Coba lagi</span>
+      </button>
+    </div>
+  );
+}
+
+function ListSkeleton({ rows = 2 }) {
+  return (
+    <div aria-hidden="true" className="space-y-4">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="animate-pulse rounded-2xl border border-slate-200 bg-white p-5">
+          <div className="h-3 w-28 rounded bg-slate-200" />
+          <div className="mt-3 h-8 w-40 rounded bg-slate-100" />
+          <div className="mt-3 h-3 w-full max-w-md rounded bg-slate-100" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PanelState({ status, error, onRetry, skeleton, children }) {
+  if (status === 'loading') return skeleton || <ListSkeleton />;
+  if (status === 'error') return <FailedPanel message={error} onRetry={onRetry} />;
+  return children;
+}
+
 export default function TenantDashboardPage() {
   const { user, updateUser, isAuthenticated, isTenant, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Active Tab from query param (default: 'ringkasan')
-  const activeTab = searchParams.get('tab') || 'ringkasan';
+  const requestedTab = searchParams.get('tab');
+  const activeTab = TAB_KEYS.includes(requestedTab) ? requestedTab : 'ringkasan';
   const setActiveTab = (tabName) => {
     setSearchParams({ tab: tabName });
   };
 
   // State
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalBookings: 0,
-    activeBookings: 0,
-    pendingBookings: 0,
-    totalFavorites: 0
-  });
+  // Dua status terpisah: kegagalan /payments/tenant tidak boleh membuat riwayat
+  // sewa terlihat kosong, dan sebaliknya.
+  const [status, setStatus] = useState('loading');
+  const [paymentsStatus, setPaymentsStatus] = useState('loading');
+  const [loadError, setLoadError] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [bookingFilter, setBookingFilter] = useState('ALL');
+  const reqId = useRef(0);
 
   // Cancel Booking Modal State
   const [cancelModalBooking, setCancelModalBooking] = useState(null);
@@ -82,34 +131,56 @@ export default function TenantDashboardPage() {
   // Toast State
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
+  const toastTimer = useRef(null);
   const triggerToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
-    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3500);
+    // Tanpa clearTimeout, toast berturut-turut menumpuk timer-nya dan pesan
+    // pertama bisa hilang lebih cepat (atau tidak pernah) dari 3,5 detik.
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3500);
   };
+  useEffect(() => () => clearTimeout(toastTimer.current), []);
 
-  // Fetch Dashboard Data
+  // Satu titik refresh untuk seluruh halaman. Nama & signature dipertahankan
+  // karena dipanggil setelah bayar, perpanjang, muat demo, dan SPK ditandatangani.
   const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      const [dashRes, bookRes, favRes, payRes] = await Promise.all([
-        api.get('/tenant/dashboard'),
-        api.get('/tenant/bookings'),
-        api.get('/tenant/favorites'),
-        api.get('/payments/tenant').catch(() => ({ data: { data: [] } }))
-      ]);
+    const my = ++reqId.current;
+    setStatus('loading');
+    setPaymentsStatus('loading');
 
-      if (dashRes.data.success) setStats(dashRes.data.data.stats || stats);
-      if (bookRes.data.success) setBookings(bookRes.data.data || []);
-      if (favRes.data.success) setFavorites(favRes.data.data || []);
-      setPayments(payRes.data?.data || []);
-    } catch (err) {
-      console.error('Gagal mengambil data dashboard:', err);
-      triggerToast(err.response?.data?.message || 'Gagal memuat data dashboard.', 'error');
-    } finally {
-      setLoading(false);
+    // /tenant/dashboard sengaja TIDAK dipakai halaman ini: endpoint itu memotong
+    // list-nya (tenantController.js:19-23 -> slice(0,5) & slice(0,4)) sehingga
+    // angka dan isinya bisa berbeda dari yang dirender, dan server harus
+    // menjalankan ulang query yang sama untuk bookings + favorites.
+    const [listRes, payRes] = await Promise.allSettled([
+      Promise.all([api.get('/tenant/bookings'), api.get('/tenant/favorites')]),
+      api.get('/payments/tenant')
+    ]);
+    if (my !== reqId.current) return; // ada fetch lebih baru; buang hasil basi
+
+    if (listRes.status === 'fulfilled') {
+      const [bookRes, favRes] = listRes.value;
+      setBookings(Array.isArray(bookRes.data?.data) ? bookRes.data.data : []);
+      setFavorites(Array.isArray(favRes.data?.data) ? favRes.data.data : []);
+      setStatus('ready');
+      setLoadError(null);
+    } else {
+      console.error('Gagal mengambil data dasbor:', listRes.reason);
+      setLoadError(listRes.reason?.response?.data?.message || 'Gagal memuat data dasbor.');
+      setStatus('error');
+      triggerToast(listRes.reason?.response?.data?.message || 'Gagal memuat data dasbor.', 'error');
+    }
+
+    if (payRes.status === 'fulfilled') {
+      setPayments(Array.isArray(payRes.value.data?.data) ? payRes.value.data.data : []);
+      setPaymentsStatus('ready');
+    } else {
+      console.error('Gagal mengambil data pembayaran:', payRes.reason);
+      setPaymentsStatus('error');
     }
   };
 
+  // Guard peran: hanya mengurus redirect, tidak ikut mengambil data.
   useEffect(() => {
     if (authLoading) return;
     if (!isAuthenticated) {
@@ -120,22 +191,29 @@ export default function TenantDashboardPage() {
     // mendapat 403 untuk tiap endpoint di bawah.
     if (!isTenant) {
       navigate('/');
-      return;
     }
-    fetchDashboardData();
+  }, [authLoading, isAuthenticated, isTenant, navigate]);
 
-    if (user) {
-      setProfileForm({
-        name: user.name || '',
-        phone: user.phone || '',
-        gender: user.profile?.gender || 'Laki-laki',
-        occupation: user.profile?.occupation || '',
-        address: user.profile?.address || '',
-        emergencyContact: user.profile?.emergencyContact || '',
-        bio: user.profile?.bio || ''
-      });
-    }
-  }, [isAuthenticated, isTenant, user, authLoading]);
+  // Sekali per sesi tenant. `user` sengaja tidak ikut di deps: menyimpan profil
+  // memanggil updateUser() yang mengubah `user`, dan sebelumnya itu membuat
+  // seluruh dasbor di-fetch ulang sekaligus menimpa form yang baru disimpan.
+  useEffect(() => {
+    if (authLoading || !isTenant) return;
+    fetchDashboardData();
+  }, [authLoading, isTenant]);
+
+  useEffect(() => {
+    if (!user) return;
+    setProfileForm({
+      name: user.name || '',
+      phone: user.phone || '',
+      gender: user.profile?.gender || 'Laki-laki',
+      occupation: user.profile?.occupation || '',
+      address: user.profile?.address || '',
+      emergencyContact: user.profile?.emergencyContact || '',
+      bio: user.profile?.bio || ''
+    });
+  }, [user]);
 
   // Handle Submit Payment
   const handleSubmitPayment = async (e) => {
@@ -169,13 +247,9 @@ export default function TenantDashboardPage() {
       const res = await api.put(`/tenant/bookings/${cancelModalBooking.id}/cancel`);
       if (res.data.success) {
         triggerToast('Pengajuan booking berhasil dibatalkan.', 'success');
-        // Update local booking list
+        // Update local booking list — angka strip ikut berubah sendiri karena
+        // diturunkan dari `bookings`, tidak lagi di-decrement manual.
         setBookings(prev => prev.map(b => b.id === cancelModalBooking.id ? { ...b, status: 'CANCELLED' } : b));
-        // Refresh metrics
-        setStats(prev => ({
-          ...prev,
-          pendingBookings: Math.max(0, prev.pendingBookings - 1)
-        }));
         setCancelModalBooking(null);
       }
     } catch (err) {
@@ -214,7 +288,6 @@ export default function TenantDashboardPage() {
       const res = await api.delete(`/tenant/favorites/${kosId}`);
       if (res.data.success) {
         setFavorites(prev => prev.filter(f => f.kosId !== kosId));
-        setStats(prev => ({ ...prev, totalFavorites: Math.max(0, prev.totalFavorites - 1) }));
         triggerToast(`${kosNama || 'Kos'} dihapus dari favorit`, 'success');
       }
     } catch (err) {
@@ -225,7 +298,7 @@ export default function TenantDashboardPage() {
   // Handle Load Demo Data (Untuk kemudahan pengujian akun kosong / owner)
   const handleLoadDemoData = async () => {
     try {
-      setLoading(true);
+      setStatus('loading');
       await api.post('/tenant/bookings', {
         kosId: 'kos-01',
         durasiBulan: 6,
@@ -240,12 +313,11 @@ export default function TenantDashboardPage() {
       });
       await api.post('/tenant/favorites/kos-02').catch(() => {});
       await api.post('/tenant/favorites/kos-03').catch(() => {});
-      triggerToast('Data simulasi booking dan favorit berhasil dimuat! 🎉', 'success');
+      triggerToast('Data simulasi booking dan favorit berhasil dimuat!', 'success');
       await fetchDashboardData();
     } catch (err) {
       triggerToast('Gagal memuat data simulasi', 'error');
-    } finally {
-      setLoading(false);
+      setStatus('error');
     }
   };
 
@@ -265,6 +337,15 @@ export default function TenantDashboardPage() {
       setSavingProfile(false);
     }
   };
+
+  // Angka strip diturunkan dari list yang sama yang dirender halaman ini, jadi
+  // tidak mungkin berbeda dari yang dilihat penyewa.
+  const stats = useMemo(() => ({
+    totalBookings: bookings.length,
+    activeBookings: bookings.filter(b => b.status === 'APPROVED').length,
+    pendingBookings: bookings.filter(b => b.status === 'PENDING').length,
+    totalFavorites: favorites.length
+  }), [bookings, favorites]);
 
   // Filtered Bookings
   const filteredBookings = bookings.filter(b => {
@@ -315,14 +396,14 @@ export default function TenantDashboardPage() {
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Toast Notification */}
       {toast.show && (
-        <div className="fixed top-20 right-4 z-50">
-          <div className={`flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium ${
+        <div className="fixed top-20 right-4 z-50 max-w-[min(92vw,22rem)]">
+          <div className={`flex items-start gap-2.5 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium ${
             toast.type === 'error'
               ? 'bg-red-50 text-red-800 border-red-200'
               : 'bg-emerald-50 text-emerald-800 border-emerald-200'
           }`}>
-            {toast.type === 'error' ? <AlertCircle className="w-4 h-4 text-red-600" /> : <CheckCircle className="w-4 h-4 text-emerald-600" />}
-            <span>{toast.message}</span>
+            {toast.type === 'error' ? <AlertCircle className="mt-0.5 w-4 h-4 flex-shrink-0 text-red-600" /> : <CheckCircle className="mt-0.5 w-4 h-4 flex-shrink-0 text-emerald-600" />}
+            <span className="break-words">{toast.message}</span>
           </div>
         </div>
       )}
@@ -363,7 +444,7 @@ export default function TenantDashboardPage() {
       </div>
 
       {/* Helper Banner pengisi data contoh — hanya untuk mempercepat uji lokal */}
-      {SHOW_DEMO_TOOLS && bookings.length === 0 && !loading && (
+      {SHOW_DEMO_TOOLS && status === 'ready' && bookings.length === 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 sm:p-5 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
             <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -389,7 +470,9 @@ export default function TenantDashboardPage() {
         </div>
       )}
 
-      {/* Stats Summary Cards */}
+      {/* Stats Summary Cards — tidak dirender saat gagal: angka 0 di bawah
+          "Data gagal dimuat" adalah nol bohongan. */}
+      {status !== 'error' && (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div
           onClick={() => { setActiveTab('riwayat'); setBookingFilter('ALL'); }}
@@ -402,7 +485,7 @@ export default function TenantDashboardPage() {
             </div>
           </div>
           <div className="text-2xl sm:text-3xl font-heading font-extrabold text-slate-900">
-            {loading ? '...' : stats.totalBookings}
+            {status === 'loading' ? <span className="inline-block h-7 w-12 animate-pulse rounded bg-slate-200" /> : stats.totalBookings}
           </div>
           <p className="text-[11px] text-slate-400 mt-1">Semua riwayat pengajuan</p>
         </div>
@@ -418,7 +501,7 @@ export default function TenantDashboardPage() {
             </div>
           </div>
           <div className="text-2xl sm:text-3xl font-heading font-extrabold text-emerald-600">
-            {loading ? '...' : stats.activeBookings}
+            {status === 'loading' ? <span className="inline-block h-7 w-12 animate-pulse rounded bg-slate-200" /> : stats.activeBookings}
           </div>
           <p className="text-[11px] text-emerald-700/70 mt-1">Sewa aktif / terkonfirmasi</p>
         </div>
@@ -434,7 +517,7 @@ export default function TenantDashboardPage() {
             </div>
           </div>
           <div className="text-2xl sm:text-3xl font-heading font-extrabold text-amber-600">
-            {loading ? '...' : stats.pendingBookings}
+            {status === 'loading' ? <span className="inline-block h-7 w-12 animate-pulse rounded bg-slate-200" /> : stats.pendingBookings}
           </div>
           <p className="text-[11px] text-amber-700/70 mt-1">Menunggu approval pemilik</p>
         </div>
@@ -450,11 +533,12 @@ export default function TenantDashboardPage() {
             </div>
           </div>
           <div className="text-2xl sm:text-3xl font-heading font-extrabold text-rose-600">
-            {loading ? '...' : stats.totalFavorites}
+            {status === 'loading' ? <span className="inline-block h-7 w-12 animate-pulse rounded bg-slate-200" /> : stats.totalFavorites}
           </div>
           <p className="text-[11px] text-rose-700/70 mt-1">Kos tersimpan di wishlist</p>
         </div>
       </div>
+      )}
 
       {/* Tabs Navigation */}
       <div className="flex border-b border-slate-200 mb-8 overflow-x-auto no-scrollbar gap-2">
@@ -513,6 +597,7 @@ export default function TenantDashboardPage() {
 
       {/* TAB CONTENT: 1. RINGKASAN (OVERVIEW) */}
       {activeTab === 'ringkasan' && (
+        <PanelState status={status} error={loadError} onRetry={fetchDashboardData}>
         <div className="space-y-8">
           {/* Latest Booking Banner */}
           {bookings.length > 0 ? (
@@ -653,10 +738,12 @@ export default function TenantDashboardPage() {
             )}
           </div>
         </div>
+        </PanelState>
       )}
 
       {/* TAB CONTENT: 2. RIWAYAT BOOKING */}
       {activeTab === 'riwayat' && (
+        <PanelState status={status} error={loadError} onRetry={fetchDashboardData}>
         <div className="space-y-6">
           {/* Filter Sub-Tabs */}
           <div className="flex items-center gap-2 overflow-x-auto pb-2">
@@ -869,10 +956,12 @@ export default function TenantDashboardPage() {
             </div>
           )}
         </div>
+        </PanelState>
       )}
 
       {/* TAB CONTENT: 3. KOS FAVORIT */}
       {activeTab === 'favorit' && (
+        <PanelState status={status} error={loadError} onRetry={fetchDashboardData}>
         <div>
           {favorites.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -952,6 +1041,7 @@ export default function TenantDashboardPage() {
             </div>
           )}
         </div>
+        </PanelState>
       )}
 
       {/* TAB CONTENT: 4. PROFIL SAYA */}
@@ -1082,6 +1172,7 @@ export default function TenantDashboardPage() {
 
       {/* TAB CONTENT: 5. PEMBAYARAN (PAYMENT HISTORY & STATUS) */}
       {activeTab === 'pembayaran' && (
+        <PanelState status={paymentsStatus} onRetry={fetchDashboardData}>
         <div className="space-y-6">
           <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -1190,6 +1281,7 @@ export default function TenantDashboardPage() {
             )}
           </div>
         </div>
+        </PanelState>
       )}
 
       {/* SUBMIT PAYMENT MODAL */}
