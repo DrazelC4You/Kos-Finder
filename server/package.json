@@ -11,7 +11,7 @@
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
     "start:prod": "prisma db push --skip-generate && node src/server.js",
-    "test": "node --test test/api.test.js test/campus-catalog.test.js",
+    "test": "node --test test/api.test.js test/campus-catalog.test.js test/prisma-parity.test.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",

@@ -1,6 +1,12 @@
 import crypto from 'crypto';
 import prisma, { checkDatabaseConnection } from './prisma.js';
 import { CAMPUS_KEYWORDS, keywordsForCampus } from './campusKeywords.js';
+import {
+  matchesSearch,
+  matchesCampusKeywords,
+  applyJsPostFilters,
+  needsJsPostFilter
+} from './kosFilters.js';
 import { seedUsers, seedKos, seedBookings, seedReviews, seedFavorites } from '../../prisma/seedData.js';
 
 /**
@@ -62,13 +68,7 @@ class MemoryDataStore {
 
     // 3. Filter Kata Kunci / Lokasi / Kota / Nama
     if (options.search) {
-      const q = options.search.toLowerCase().trim();
-      result = result.filter(k =>
-        k.nama.toLowerCase().includes(q) ||
-        k.kota.toLowerCase().includes(q) ||
-        k.alamat.toLowerCase().includes(q) ||
-        (k.deskripsi && k.deskripsi.toLowerCase().includes(q))
-      );
+      result = result.filter(k => matchesSearch(k, options.search));
     } else if (options.kota) {
       result = result.filter(k => k.kota.toLowerCase().includes(options.kota.toLowerCase().trim()));
     }
@@ -76,10 +76,7 @@ class MemoryDataStore {
     // 3b. Filter Berdasarkan Kampus / Landmark Nasional (Phase 13+)
     if (options.campus || options.landmark) {
       const keywords = keywordsForCampus(options.campus || options.landmark);
-      result = result.filter(k => {
-        const textToSearch = `${k.nama} ${k.alamat} ${k.kota} ${k.deskripsi || ''}`.toLowerCase();
-        return keywords.some(kw => textToSearch.includes(kw));
-      });
+      result = result.filter(k => matchesCampusKeywords(k, keywords));
     }
 
     // 4. Filter Tipe (CAMPUR, PUTRA, PUTRI)
@@ -105,32 +102,8 @@ class MemoryDataStore {
       result = result.filter(k => (k.rating || 0) >= Number(options.minRating));
     }
 
-    // 7. Filter Fasilitas (harus memiliki semua fasilitas yang diminta)
-    if (options.facilities && options.facilities.length > 0) {
-      result = result.filter(k => {
-        const facs = (k.fasilitas || []).map(f => f.toLowerCase());
-        return options.facilities.every(f => {
-          const targetFac = f.toLowerCase().trim();
-          return facs.some(kFac => kFac.includes(targetFac) || targetFac.includes(kFac));
-        });
-      });
-    }
-
-    // 7b. Filter Aturan / Peraturan Kos (Phase 13)
-    if (options.rules && options.rules.length > 0) {
-      result = result.filter(k => {
-        const aturanText = (k.aturan || '').toLowerCase();
-        const facsText = (k.fasilitas || []).join(' ').toLowerCase();
-        const combined = `${aturanText} ${facsText}`;
-        return options.rules.every(r => {
-          const ruleQuery = r.toLowerCase().trim();
-          if (ruleQuery === '24jam' || ruleQuery === 'akses 24 jam') return combined.includes('24 jam') || combined.includes('bebas jam malam');
-          if (ruleQuery === 'pasutri') return combined.includes('pasutri') || combined.includes('suami istri');
-          if (ruleQuery === 'bebas_asap' || ruleQuery === 'dilarang merokok') return combined.includes('dilarang merokok') || combined.includes('bebas rokok');
-          return combined.includes(ruleQuery);
-        });
-      });
-    }
+    // 7 + 7b. Fasilitas dan Aturan — predicate bersama dengan cabang Prisma
+    result = result.filter(k => applyJsPostFilters(k, options));
 
     // 8. Sorting
     if (options.sort === 'price-asc') {
@@ -2075,7 +2048,9 @@ class MemoryDataStore {
 
 
 
-const memoryStore = new MemoryDataStore();
+// Diekspor agar test bisa membandingkan kedua jalur query pada input yang sama
+// tanpa menunggu probe koneksi (isPostgresAvailable di-cache seumur proses).
+export const memoryStore = new MemoryDataStore();
 let isPostgresAvailable = null;
 
 // Token reset password (ephemeral, berlaku 1 jam). Disimpan di memori
@@ -2165,7 +2140,17 @@ export const db = {
         where.OR = [
           { nama: { contains: options.search, mode: 'insensitive' } },
           { kota: { contains: options.search, mode: 'insensitive' } },
-          { alamat: { contains: options.search, mode: 'insensitive' } }
+          { alamat: { contains: options.search, mode: 'insensitive' } },
+          { deskripsi: { contains: options.search, mode: 'insensitive' } }
+        ];
+      }
+      // Kampus/landmark butuh kelompok OR sendiri di dalam AND: kalau ditaruh
+      // di where.OR ia akan menimpa OR search dan salah satu filter hilang.
+      if (options.campus || options.landmark) {
+        const keywords = keywordsForCampus(options.campus || options.landmark);
+        const fields = ['nama', 'alamat', 'kota', 'deskripsi'];
+        where.AND = [
+          { OR: keywords.flatMap(kw => fields.map(f => ({ [f]: { contains: kw, mode: 'insensitive' } }))) }
         ];
       }
       if (options.minPrice || options.maxPrice) {
@@ -2186,19 +2171,32 @@ export const db = {
       if (options.sort === 'rating-desc') orderBy = { rating: 'desc' };
       if (options.sort === 'popular') orderBy = { jumlahReview: 'desc' };
 
+      const include = {
+        owner: {
+          select: { id: true, name: true, phone: true, avatar: true }
+        }
+      };
+
+      // Fasilitas & aturan dicocokkan di JS (alasan: lihat kosFilters.js), jadi
+      // penyaringannya harus terjadi sebelum pagination — seluruh kandidat
+      // diambil dulu, baru di-slice.
+      if (needsJsPostFilter(options)) {
+        const rows = await prisma.kos.findMany({ where, orderBy, include });
+        const filtered = rows.filter(k => applyJsPostFilters(k, options));
+        return {
+          data: filtered.slice(skip, skip + limit),
+          pagination: {
+            page,
+            limit,
+            total: filtered.length,
+            totalPages: Math.ceil(filtered.length / limit)
+          }
+        };
+      }
+
       const [total, data] = await Promise.all([
         prisma.kos.count({ where }),
-        prisma.kos.findMany({
-          where,
-          skip,
-          take: limit,
-          orderBy,
-          include: {
-            owner: {
-              select: { id: true, name: true, phone: true, avatar: true }
-            }
-          }
-        })
+        prisma.kos.findMany({ where, skip, take: limit, orderBy, include })
       ]);
 
       return {
