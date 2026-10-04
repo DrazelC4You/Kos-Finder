@@ -4,6 +4,7 @@ import api from '../services/api.js';
 import KosCard, { formatRupiah } from '../components/KosCard.jsx';
 import KosCardSkeleton from '../components/KosCardSkeleton.jsx';
 import SearchFilters, { POPULAR_RULES } from '../components/SearchFilters.jsx';
+import useDocumentTitle from '../hooks/useDocumentTitle.js';
 import {
   Search, SlidersHorizontal, X, MapPin, GraduationCap, ChevronLeft, ChevronRight
 } from 'lucide-react';
@@ -48,6 +49,7 @@ const readFiltersFromUrl = (params) => ({
 
 export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  useDocumentTitle('Cari Kos');
 
   const [filters, setFilters] = useState(() => readFiltersFromUrl(searchParams));
   const [debouncedSearch, setDebouncedSearch] = useState(filters.search);

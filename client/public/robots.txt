@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /tenant
+Disallow: /owner
+Disallow: /admin
+Disallow: /chat
+Disallow: /login
+Disallow: /register
+Disallow: /verify-email
+Disallow: /reset-password
+
+Sitemap: https://kosfinder.onrender.com/sitemap.xml

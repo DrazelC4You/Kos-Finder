@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api.js';
 import KosCard from '../components/KosCard.jsx';
 import KosCardSkeleton from '../components/KosCardSkeleton.jsx';
+import useDocumentTitle from '../hooks/useDocumentTitle.js';
 import SearchDropdown from '../components/SearchDropdown.jsx';
 import IndonesiaMap from '../components/IndonesiaMap.jsx';
 import { FaqSection } from '../components/FaqSection.jsx';
@@ -234,6 +235,7 @@ const SUPPORT_EMAIL = import.meta.env.VITE_SUPPORT_EMAIL || '';
 
 export default function HomePage() {
   const navigate = useNavigate();
+  useDocumentTitle('');
 
   // Search filter states in Hero
   const [searchQuery, setSearchQuery] = useState('');
