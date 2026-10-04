@@ -75,6 +75,205 @@ function PanelState({ status, error, onRetry, skeleton, children }) {
   return children;
 }
 
+function getStatusBadge(status) {
+  switch (status) {
+    case 'APPROVED':
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+          <CheckCircle className="w-3.5 h-3.5" />
+          Disetujui / Aktif
+        </span>
+      );
+    // Sewa yang sudah dibayar dan dikonfirmasi pemilik. Server memakai status
+    // ini (db.js processPaymentConfirmation) dan tetap mengizinkan SPK,
+    // kwitansi, serta perpanjangan — tanpanya case ini enum mentah "COMPLETED"
+    // tercetak dan ketiga aksi itu hilang.
+    case 'COMPLETED':
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+          <BadgeCheck className="w-3.5 h-3.5" />
+          Selesai / Lunas
+        </span>
+      );
+    case 'PENDING':
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+          <Clock className="w-3.5 h-3.5" />
+          Menunggu Konfirmasi
+        </span>
+      );
+    case 'REJECTED':
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-200">
+          <XCircle className="w-3.5 h-3.5" />
+          Ditolak
+        </span>
+      );
+    case 'CANCELLED':
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+          <AlertCircle className="w-3.5 h-3.5" />
+          Dibatalkan
+        </span>
+      );
+    default:
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
+          {status}
+        </span>
+      );
+  }
+}
+
+const FALLBACK_FOTO = 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=500';
+
+/**
+ * Satu kartu booking, dipakai tab Ringkasan (pengajuan terbaru) dan Riwayat
+ * (list). Sebelumnya objek yang sama dirender dua kali dengan struktur 90%
+ * paralel, dan "Batalkan Pengajuan" punya dua entry point ke modal yang sama.
+ *
+ * Aksi sengaja diterima sebagai prop supaya kartu tetap tahu cara dipakai.
+ */
+function BookingCard({ booking: b, compact = false, onAgreement, onInvoice, onExtend, onPay, onCancel }) {
+  const isOpen = ['APPROVED', 'COMPLETED'].includes(b.status);
+  const canPay = b.status === 'APPROVED' || b.status === 'PENDING';
+
+  return (
+    <div className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 md:flex-row items-start">
+      <img
+        src={b.kos?.foto?.[0] || FALLBACK_FOTO}
+        alt={b.kos?.nama}
+        className={`w-full h-32 object-cover rounded-xl border border-slate-100 ${compact ? 'md:w-40' : 'md:w-44'}`}
+      />
+      <div className="flex-1 min-w-0 space-y-2 text-xs">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            {!compact && (
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-700 flex-shrink-0">
+                {b.kos?.type || 'CAMPUR'}
+              </span>
+            )}
+            <h3 className="font-heading font-bold text-base text-slate-900 truncate">
+              <Link to={`/kos/${b.kosId}`} className="hover:text-emerald-600">{b.kos?.nama}</Link>
+            </h3>
+          </div>
+          {getStatusBadge(b.status)}
+        </div>
+
+        <p className="text-slate-500 flex items-center gap-1.5">
+          <MapPin className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+          <span>{b.kos?.alamat}, {b.kos?.kota}</span>
+        </p>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 py-2 bg-slate-50 p-3 rounded-xl text-slate-700">
+          <div>
+            <span className="text-slate-400 block text-[10px]">Pilihan Kamar:</span>
+            <span className="font-semibold">{b.room?.nomorKamar || 'Kamar Utama'}</span>
+          </div>
+          <div>
+            <span className="text-slate-400 block text-[10px]">Mulai Sewa:</span>
+            <span className="font-semibold">
+              {new Date(b.tanggalMulai).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+            </span>
+          </div>
+          <div>
+            <span className="text-slate-400 block text-[10px]">Durasi:</span>
+            <span className="font-semibold">{b.durasiBulan} Bulan</span>
+          </div>
+          <div>
+            <span className="text-slate-400 block text-[10px]">Total Biaya:</span>
+            <span className="font-bold text-emerald-700 tabular-nums">{formatRupiah(b.totalHarga)}</span>
+          </div>
+        </div>
+
+        {b.catatan && (
+          <p className="text-slate-500 italic text-[11px] bg-slate-50/50 px-2 py-1 rounded">"{b.catatan}"</p>
+        )}
+
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
+          <div className="flex items-center gap-3">
+            <Link
+              to={`/kos/${b.kosId}`}
+              className="inline-flex items-center gap-1 text-slate-600 hover:text-emerald-600 font-semibold"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Halaman Kos</span>
+            </Link>
+            {b.kos?.owner?.phone && (
+              <a
+                href={`https://wa.me/${b.kos.owner.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Halo ${b.kos.owner.name || 'Pemilik'}, saya penyewa ${b.kos.nama}.`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-emerald-700 hover:text-emerald-800 font-semibold"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>WhatsApp Pemilik ({b.kos.owner.phone})</span>
+              </a>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            {isOpen && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => onAgreement(b.id)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-slate-100 px-3.5 py-1.5 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-200"
+                >
+                  <FileText className="w-3.5 h-3.5 text-emerald-700" />
+                  <span>Surat Perjanjian (SPK)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onInvoice(b.id)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-slate-100 px-3.5 py-1.5 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-200"
+                >
+                  <Receipt className="w-3.5 h-3.5 text-blue-700" />
+                  <span>Kwitansi</span>
+                </button>
+                {b.extensionRequest?.status === 'PENDING' ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Perpanjangan Menunggu Konfirmasi</span>
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => onExtend(b)}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-1.5 text-xs font-bold text-white transition-colors hover:bg-blue-700"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Perpanjang Sewa</span>
+                  </button>
+                )}
+              </>
+            )}
+            {canPay && (
+              <button
+                type="button"
+                onClick={() => onPay(b)}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white transition-colors hover:bg-emerald-700"
+              >
+                <CreditCard className="w-3.5 h-3.5" />
+                <span>Bayar / Kirim Bukti</span>
+              </button>
+            )}
+            {b.status === 'PENDING' && (
+              <button
+                type="button"
+                onClick={() => onCancel(b)}
+                className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-100 hover:text-red-700"
+              >
+                Batalkan Booking
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function TenantDashboardPage() {
   const { user, updateUser, isAuthenticated, isTenant, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -393,61 +592,27 @@ export default function TenantDashboardPage() {
   // dari sewa yang mati.
   const payableBookings = bookings.filter(b => b.status === 'APPROVED' || b.status === 'PENDING');
 
+  const openPaymentModal = (b) => {
+    setPaymentModal(b);
+    setPaymentForm({
+      metodePembayaran: 'Transfer Bank BCA',
+      namaRekening: user?.name || '',
+      nomorRekening: '',
+      jumlahTransfer: b.totalHarga || '',
+      catatan: `Pembayaran sewa ${b.kos?.nama} (${b.durasiBulan} bulan)`
+    });
+  };
+  const openExtensionModal = (b) => {
+    setExtensionModal(b);
+    setExtensionForm({ durasiBulan: 1, catatan: '' });
+  };
+
   // Filtered Bookings
   const filteredBookings = bookings.filter(b => {
     if (bookingFilter === 'ALL') return true;
     return b.status === bookingFilter;
   });
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'APPROVED':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
-            <CheckCircle className="w-3.5 h-3.5" />
-            Disetujui / Aktif
-          </span>
-        );
-      // Sewa yang sudah dibayar dan dikonfirmasi pemilik. Server memakai status
-      // ini (db.js processPaymentConfirmation) dan tetap mengizinkan SPK,
-      // kwitansi, serta perpanjangan — tanpanya case ini enum mentah "COMPLETED"
-      // tercetak dan ketiga aksi itu hilang.
-      case 'COMPLETED':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
-            <BadgeCheck className="w-3.5 h-3.5" />
-            Selesai / Lunas
-          </span>
-        );
-      case 'PENDING':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
-            <Clock className="w-3.5 h-3.5" />
-            Menunggu Konfirmasi
-          </span>
-        );
-      case 'REJECTED':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-200">
-            <XCircle className="w-3.5 h-3.5" />
-            Ditolak
-          </span>
-        );
-      case 'CANCELLED':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-            <AlertCircle className="w-3.5 h-3.5" />
-            Dibatalkan
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
-            {status}
-          </span>
-        );
-    }
-  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
@@ -563,144 +728,43 @@ export default function TenantDashboardPage() {
       {activeTab === 'ringkasan' && (
         <PanelState status={status} error={loadError} onRetry={fetchDashboardData}>
         <div className="space-y-8">
-          {/* Latest Booking Banner */}
           {bookings.length > 0 ? (
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                  <h3 className="font-heading font-bold text-base text-slate-900">Pengajuan Booking Terbaru</h3>
-                </div>
-                {getStatusBadge(bookings[0].status)}
-              </div>
-
-              <div className="flex flex-col md:flex-row gap-5 items-start">
-                <img
-                  src={bookings[0].kos?.foto?.[0] || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600'}
-                  alt={bookings[0].kos?.nama}
-                  className="w-full md:w-48 h-32 object-cover rounded-xl border border-slate-100"
-                />
-                <div className="flex-1 space-y-2 text-xs text-slate-600">
-                  <h4 className="font-heading font-bold text-base text-slate-900">
-                    <Link to={`/kos/${bookings[0].kosId}`} className="hover:text-emerald-600">
-                      {bookings[0].kos?.nama}
-                    </Link>
-                  </h4>
-                  <p className="flex items-center gap-1.5 text-slate-500">
-                    <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{bookings[0].kos?.alamat}, {bookings[0].kos?.kota}</span>
-                  </p>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 py-2 text-slate-700">
-                    <div>
-                      <span className="text-slate-400 block text-[11px]">Kamar:</span>
-                      <span className="font-semibold">{bookings[0].room?.nomorKamar || 'Kamar Standar'}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block text-[11px]">Durasi Sewa:</span>
-                      <span className="font-semibold">{bookings[0].durasiBulan} Bulan</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block text-[11px]">Total Biaya:</span>
-                      <span className="font-bold text-emerald-700">{formatRupiah(bookings[0].totalHarga)}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 pt-2">
-                    <Link
-                      to={`/kos/${bookings[0].kosId}`}
-                      className="inline-flex items-center gap-1 text-emerald-700 hover:text-emerald-800 font-semibold"
-                    >
-                      <span>Lihat Detail Kos</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </Link>
-
-                    {bookings[0].status === 'PENDING' && (
-                      <button
-                        onClick={() => setCancelModalBooking(bookings[0])}
-                        className="text-red-600 hover:text-red-700 font-semibold text-xs ml-auto"
-                      >
-                        Batalkan Pengajuan
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center">
-              <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                <Calendar className="w-7 h-7" />
-              </div>
-              <h3 className="font-heading font-bold text-base text-slate-800 mb-1">Belum Ada Pengajuan Sewa</h3>
-              <p className="text-xs text-slate-500 max-w-md mx-auto mb-5">
-                {SHOW_DEMO_TOOLS
-                  ? 'Temukan kamar kos impian Anda di berbagai kota, atau klik tombol di bawah untuk memuat data pengujian otomatis.'
-                  : 'Temukan kamar kos impian Anda di berbagai kota.'}
-              </p>
-              <div className="flex flex-wrap items-center justify-center gap-3">
-                {SHOW_DEMO_TOOLS && (
-                  <button
-                    type="button"
-                    onClick={handleLoadDemoData}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs rounded-xl shadow-sm transition-all"
-                  >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span>Muat Data Contoh (Demo)</span>
-                  </button>
-                )}
+            <div>
+              <div className="mb-3 flex items-center justify-between gap-4">
+                <h3 className="font-heading text-sm font-bold text-slate-900">Pengajuan terbaru</h3>
                 <Link
-                  to="/cari"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl shadow-sm transition-all"
+                  to="/tenant/dashboard?tab=riwayat"
+                  className="text-xs font-semibold text-emerald-700 hover:text-emerald-800"
                 >
-                  <span>Mulai Cari Kos Sekarang</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  Lihat semua ({bookings.length})
                 </Link>
               </div>
+              <BookingCard
+                booking={bookings[0]}
+                compact
+                onAgreement={setSelectedAgreementBookingId}
+                onInvoice={setSelectedInvoiceBookingId}
+                onExtend={openExtensionModal}
+                onPay={openPaymentModal}
+                onCancel={setCancelModalBooking}
+              />
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-10 text-center">
+              <Calendar className="mx-auto mb-3 h-10 w-10 text-slate-300" />
+              <h3 className="font-heading mb-1 text-sm font-bold text-slate-800">Belum ada pengajuan sewa</h3>
+              <p className="mx-auto mb-5 max-w-sm text-xs text-slate-500">
+                Telusuri kamar kos berdasarkan lokasi, harga, dan fasilitas di kota tujuan Anda.
+              </p>
+              <Link
+                to="/cari"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-emerald-700"
+              >
+                <span>Mulai cari kos</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
           )}
-
-          {/* Quick Saved Favorites */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-heading font-bold text-base text-slate-900">Kos Favorit Terakhir Disimpan</h3>
-              <button
-                onClick={() => setActiveTab('favorit')}
-                className="text-xs font-semibold text-emerald-700 hover:text-emerald-800"
-              >
-                Lihat Semua ({favorites.length})
-              </button>
-            </div>
-
-            {favorites.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {favorites.slice(0, 2).map((fav) => (
-                  <div key={fav.id} className="bg-white border border-slate-200 rounded-2xl p-4 flex gap-4 items-center shadow-sm">
-                    <img
-                      src={fav.kos?.foto?.[0] || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400'}
-                      alt={fav.kos?.nama}
-                      className="w-20 h-20 rounded-xl object-cover"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <span className="text-[10px] font-bold text-emerald-700 uppercase">{fav.kos?.type}</span>
-                      <h4 className="font-heading font-bold text-sm text-slate-900 truncate">
-                        <Link to={`/kos/${fav.kosId}`} className="hover:text-emerald-600">
-                          {fav.kos?.nama}
-                        </Link>
-                      </h4>
-                      <p className="text-xs text-slate-500 truncate">{fav.kos?.kota}</p>
-                      <p className="text-xs font-bold text-emerald-700 mt-1">
-                        {formatRupiah(fav.kos?.hargaBulanan)} <span className="font-normal text-slate-400 text-[10px]">/bln</span>
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-slate-400 bg-white border border-slate-200 p-6 rounded-2xl text-center">
-                Belum ada kos yang ditandai sebagai favorit. Klik tombol hati pada kos yang Anda sukai!
-              </p>
-            )}
-          </div>
         </div>
         </PanelState>
       )}
@@ -736,152 +800,14 @@ export default function TenantDashboardPage() {
           {filteredBookings.length > 0 ? (
             <div className="space-y-4">
               {filteredBookings.map((b) => (
-                <div
-                  key={b.id}
-                  className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:border-slate-300 transition-all flex flex-col md:flex-row gap-5 items-start"
-                >
-                  <img
-                    src={b.kos?.foto?.[0] || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=500'}
-                    alt={b.kos?.nama}
-                    className="w-full md:w-44 h-32 object-cover rounded-xl border border-slate-100"
-                  />
-                  <div className="flex-1 space-y-2 text-xs">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-700">
-                          {b.kos?.type || 'CAMPUR'}
-                        </span>
-                        <h3 className="font-heading font-bold text-base text-slate-900">
-                          <Link to={`/kos/${b.kosId}`} className="hover:text-emerald-600">
-                            {b.kos?.nama}
-                          </Link>
-                        </h3>
-                      </div>
-                      {getStatusBadge(b.status)}
-                    </div>
-
-                    <p className="text-slate-500 flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{b.kos?.alamat}, {b.kos?.kota}</span>
-                    </p>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 py-2 bg-slate-50 p-3 rounded-xl text-slate-700">
-                      <div>
-                        <span className="text-slate-400 block text-[10px]">Pilihan Kamar:</span>
-                        <span className="font-semibold">{b.room?.nomorKamar || 'Kamar Utama'}</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400 block text-[10px]">Mulai Sewa:</span>
-                        <span className="font-semibold">
-                          {new Date(b.tanggalMulai).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400 block text-[10px]">Durasi:</span>
-                        <span className="font-semibold">{b.durasiBulan} Bulan</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400 block text-[10px]">Total Biaya:</span>
-                        <span className="font-bold text-emerald-700">{formatRupiah(b.totalHarga)}</span>
-                      </div>
-                    </div>
-
-                    {b.catatan && (
-                      <p className="text-slate-500 italic text-[11px] bg-slate-50/50 px-2 py-1 rounded">
-                        "{b.catatan}"
-                      </p>
-                    )}
-
-                    <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
-                      <div className="flex items-center gap-3">
-                        <Link
-                          to={`/kos/${b.kosId}`}
-                          className="inline-flex items-center gap-1 text-slate-600 hover:text-emerald-600 font-semibold"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                          <span>Halaman Kos</span>
-                        </Link>
-                        {b.kos?.owner?.phone && (
-                          <a
-                            href={`https://wa.me/${b.kos.owner.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Halo ${b.kos.owner.name || 'Pemilik'}, saya penyewa ${b.kos.nama}.`)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-emerald-700 hover:text-emerald-800 font-semibold"
-                          >
-                            <MessageSquare className="w-3.5 h-3.5" />
-                            <span>WhatsApp Pemilik ({b.kos.owner.phone})</span>
-                          </a>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {['APPROVED', 'COMPLETED'].includes(b.status) && (
-                          <>
-                            <button
-                              onClick={() => setSelectedAgreementBookingId(b.id)}
-                              className="px-3.5 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-300 shadow-sm transition-colors inline-flex items-center gap-1.5"
-                            >
-                              <FileText className="w-3.5 h-3.5 text-emerald-700" />
-                              <span>Surat Perjanjian (SPK)</span>
-                            </button>
-
-                            <button
-                              onClick={() => setSelectedInvoiceBookingId(b.id)}
-                              className="px-3.5 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-300 shadow-sm transition-colors inline-flex items-center gap-1.5"
-                            >
-                              <Receipt className="w-3.5 h-3.5 text-blue-700" />
-                              <span>Kwitansi</span>
-                            </button>
-
-                            {b.extensionRequest?.status === 'PENDING' ? (
-                              <span className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 rounded-lg border border-amber-200 inline-flex items-center gap-1.5">
-                                <Clock className="w-3.5 h-3.5" />
-                                <span>Perpanjangan Menunggu Konfirmasi</span>
-                              </span>
-                            ) : (
-                              <button
-                                onClick={() => {
-                                  setExtensionModal(b);
-                                  setExtensionForm({ durasiBulan: 1, catatan: '' });
-                                }}
-                                className="px-3.5 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors inline-flex items-center gap-1.5"
-                              >
-                                <RefreshCw className="w-3.5 h-3.5" />
-                                <span>Perpanjang Sewa</span>
-                              </button>
-                            )}
-                          </>
-                        )}
-                        {(b.status === 'APPROVED' || b.status === 'PENDING') && (
-                          <button
-                            onClick={() => {
-                              setPaymentModal(b);
-                              setPaymentForm({
-                                metodePembayaran: 'Transfer Bank BCA',
-                                namaRekening: user?.name || '',
-                                nomorRekening: '',
-                                jumlahTransfer: b.totalHarga || '',
-                                catatan: `Pembayaran sewa ${b.kos?.nama} (${b.durasiBulan} bulan)`
-                              });
-                            }}
-                            className="px-3.5 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-colors inline-flex items-center gap-1.5"
-                          >
-                            <CreditCard className="w-3.5 h-3.5" />
-                            <span>Bayar / Kirim Bukti</span>
-                          </button>
-                        )}
-                        {b.status === 'PENDING' && (
-                          <button
-                            onClick={() => setCancelModalBooking(b)}
-                            className="px-3 py-1.5 text-xs font-semibold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg border border-red-200 transition-colors"
-                          >
-                            Batalkan Booking
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <BookingCard
+                  booking={b}
+                  onAgreement={setSelectedAgreementBookingId}
+                  onInvoice={setSelectedInvoiceBookingId}
+                  onExtend={openExtensionModal}
+                  onPay={openPaymentModal}
+                  onCancel={setCancelModalBooking}
+                />
               ))}
             </div>
           ) : (
@@ -1153,15 +1079,7 @@ export default function TenantDashboardPage() {
               {payableBookings.length > 0 && (
                 <button
                   onClick={() => {
-                    const b = payableBookings[0];
-                    setPaymentModal(b);
-                    setPaymentForm({
-                      metodePembayaran: 'Transfer Bank BCA',
-                      namaRekening: user?.name || '',
-                      nomorRekening: '',
-                      jumlahTransfer: b.totalHarga || '',
-                      catatan: `Pembayaran sewa ${b.kos?.nama}`
-                    });
+                    openPaymentModal(payableBookings[0]);
                   }}
                   className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all"
                 >
