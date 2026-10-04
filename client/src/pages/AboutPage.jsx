@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import useDocumentTitle from '../hooks/useDocumentTitle.js';
 import {
   ArrowRight, Search, ShieldCheck, MessagesSquare, Star, CircleDollarSign
 } from 'lucide-react';
@@ -55,6 +56,7 @@ const Kicker = ({ children }) => (
 );
 
 export default function AboutPage() {
+  useDocumentTitle('Tentang Kami');
   return (
     <div className="bg-slate-50">
 

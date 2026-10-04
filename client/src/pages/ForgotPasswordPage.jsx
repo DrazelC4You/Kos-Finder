@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Home, Mail, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { Mail, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
 import api from '../services/api.js';
+import BrandLogo from '../components/BrandLogo.jsx';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -34,9 +35,7 @@ export default function ForgotPasswordPage() {
         {/* Brand Header */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 font-heading font-extrabold text-2xl text-slate-900 mb-2">
-            <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-600/20">
-              <Home className="w-5 h-5" />
-            </div>
+            <BrandLogo className="w-12 h-12" />
             <span>Kos<span className="text-emerald-600">Finder</span></span>
           </Link>
           <h2 className="text-2xl font-bold text-slate-900 font-heading">Lupa Kata Sandi</h2>

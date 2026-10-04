@@ -4,6 +4,7 @@ import api from '../services/api.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { formatRupiah } from '../components/KosCard.jsx';
 import KosMap from '../components/KosMap.jsx';
+import useDocumentTitle from '../hooks/useDocumentTitle.js';
 import {
   MapPin, Star, Heart, CheckCircle2, Bed, ArrowLeft, Shield,
   MessageSquare, Calendar, AlertCircle, Sparkles, Check, Info,
@@ -16,6 +17,7 @@ export default function KosDetailPage() {
   const { user, isAuthenticated } = useAuth();
 
   const [kos, setKos] = useState(null);
+  useDocumentTitle(kos ? `${kos.nama} — Kos di ${kos.kota}` : 'Detail Kos');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);

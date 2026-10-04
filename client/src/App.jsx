@@ -8,6 +8,7 @@ import {
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import api from './services/api.js';
 import NotificationBell from './components/NotificationBell.jsx';
+import BrandLogo from './components/BrandLogo.jsx';
 import RouteFallback from './components/RouteFallback.jsx';
 import RouteErrorBoundary from './components/RouteErrorBoundary.jsx';
 
@@ -165,9 +166,7 @@ function Navbar() {
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
         {/* Brand Logo */}
         <Link to="/" className="flex items-center gap-2 font-heading font-extrabold text-xl text-slate-900">
-          <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shadow-sm shadow-emerald-600/20">
-            <Home className="w-4 h-4" />
-          </div>
+          <BrandLogo className="w-10 h-10" />
           <span>Kos<span className="text-emerald-600">Finder</span></span>
         </Link>
 
@@ -544,9 +543,7 @@ export default function App() {
             <div className="grid grid-cols-2 gap-x-6 gap-y-9 pb-10 sm:grid-cols-12">
               <div className="col-span-2 sm:col-span-6">
                 <Link to="/" className="inline-flex items-center gap-2">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-600 text-white">
-                    <Home className="w-4 h-4" />
-                  </span>
+                  <BrandLogo className="h-9 w-9" />
                   <span className="font-heading font-extrabold text-base text-slate-900">
                     Kos<span className="text-emerald-600">Finder</span>
                   </span>

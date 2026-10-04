@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import useDocumentTitle from '../hooks/useDocumentTitle.js';
 import {
   ArrowRight, Building2, BedDouble, CalendarCheck, Wallet, MessageSquare, ImagePlus
 } from 'lucide-react';
@@ -70,6 +71,7 @@ const Kicker = ({ children }) => (
 );
 
 export default function OwnerLandingPage() {
+  useDocumentTitle('Untuk Pemilik Kos');
   return (
     <div className="bg-slate-50">
 
