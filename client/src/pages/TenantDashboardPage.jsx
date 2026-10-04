@@ -18,10 +18,18 @@ import OfficialInvoiceModal from '../components/OfficialInvoiceModal.jsx';
 // ter-strip dari bundle produksi.
 const SHOW_DEMO_TOOLS = import.meta.env.DEV;
 
-// Nilai ?tab= di luar daftar ini harus di-fallback, bukan dipercaya apa adanya:
+// Tab dan filter dibaca dari URL, dan nilai di luar daftar ini harus di-fallback:
 // tiap panel dicocokkan dengan `activeTab === '...'`, jadi satu karakter salah
 // membuat halaman menampilkan bar tab tanpa konten sama sekali.
-const TAB_KEYS = ['ringkasan', 'riwayat', 'favorit', 'profil', 'pembayaran'];
+const TABS = [
+  { key: 'ringkasan', label: 'Ringkasan' },
+  { key: 'riwayat', label: 'Riwayat Booking' },
+  { key: 'favorit', label: 'Kos Favorit' },
+  { key: 'profil', label: 'Profil Saya' },
+  { key: 'pembayaran', label: 'Pembayaran' }
+];
+const TAB_KEYS = TABS.map(t => t.key);
+const STATUS_KEYS = ['ALL', 'PENDING', 'APPROVED', 'COMPLETED', 'CANCELLED', 'REJECTED'];
 
 /**
  * Panel data tidak boleh memutuskan "kosong" sebelum datanya benar-benar tiba.
@@ -72,12 +80,17 @@ export default function TenantDashboardPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Active Tab from query param (default: 'ringkasan')
+  // Active Tab + filter status dari query param, supaya strip, chip, dan tombol
+  // back browser memakai satu sumber kebenaran.
   const requestedTab = searchParams.get('tab');
   const activeTab = TAB_KEYS.includes(requestedTab) ? requestedTab : 'ringkasan';
+  const requestedStatus = searchParams.get('status');
+  const bookingFilter = STATUS_KEYS.includes(requestedStatus) ? requestedStatus : 'ALL';
   const setActiveTab = (tabName) => {
+    // Mengganti seluruh query: pindah tab memang harus reset filter.
     setSearchParams({ tab: tabName });
   };
+  const setBookingFilter = (status) => setSearchParams({ tab: 'riwayat', status });
 
   // State
   // Dua status terpisah: kegagalan /payments/tenant tidak boleh membuat riwayat
@@ -87,7 +100,6 @@ export default function TenantDashboardPage() {
   const [loadError, setLoadError] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [favorites, setFavorites] = useState([]);
-  const [bookingFilter, setBookingFilter] = useState('ALL');
   const reqId = useRef(0);
 
   // Cancel Booking Modal State
@@ -558,59 +570,27 @@ export default function TenantDashboardPage() {
       </div>
       )}
 
-      {/* Tabs Navigation */}
-      <div className="flex border-b border-slate-200 mb-8 overflow-x-auto no-scrollbar gap-2">
-        <button
-          onClick={() => setActiveTab('ringkasan')}
-          className={`py-3 px-4 text-xs font-bold whitespace-nowrap transition-all border-b-2 ${
-            activeTab === 'ringkasan'
-              ? 'border-emerald-600 text-emerald-700 bg-emerald-50/50 rounded-t-lg'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          Ringkasan
-        </button>
-        <button
-          onClick={() => setActiveTab('riwayat')}
-          className={`py-3 px-4 text-xs font-bold whitespace-nowrap transition-all border-b-2 ${
-            activeTab === 'riwayat'
-              ? 'border-emerald-600 text-emerald-700 bg-emerald-50/50 rounded-t-lg'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          Riwayat Booking ({bookings.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('favorit')}
-          className={`py-3 px-4 text-xs font-bold whitespace-nowrap transition-all border-b-2 ${
-            activeTab === 'favorit'
-              ? 'border-emerald-600 text-emerald-700 bg-emerald-50/50 rounded-t-lg'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          Kos Favorit ({favorites.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('profil')}
-          className={`py-3 px-4 text-xs font-bold whitespace-nowrap transition-all border-b-2 ${
-            activeTab === 'profil'
-              ? 'border-emerald-600 text-emerald-700 bg-emerald-50/50 rounded-t-lg'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          Profil Saya
-        </button>
-        <button
-          onClick={() => setActiveTab('pembayaran')}
-          className={`py-3 px-4 text-xs font-bold whitespace-nowrap transition-all border-b-2 flex items-center gap-1.5 ${
-            activeTab === 'pembayaran'
-              ? 'border-emerald-600 text-emerald-700 bg-emerald-50/50 rounded-t-lg'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <CreditCard className="w-3.5 h-3.5" />
-          Pembayaran ({payments.length})
-        </button>
+      {/* Tabs Navigation — sama seperti dasbor pemilik: sticky di bawah navbar,
+          indikator garis bawah, tanpa angka. Angka sudah dimiliki strip status dan
+          chip filter, jadi tab cukup menandai tempat. */}
+      <div className="sticky top-16 z-30 -mx-4 mb-8 border-b border-slate-200 bg-slate-50/95 backdrop-blur-sm">
+        <div className="flex gap-1 overflow-x-auto no-scrollbar px-4">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              aria-current={activeTab === t.key ? "page" : undefined}
+              onClick={() => setActiveTab(t.key)}
+              className={`whitespace-nowrap border-b-2 px-3 py-3 text-xs font-semibold transition-colors ${
+                activeTab === t.key
+                  ? "border-emerald-600 text-emerald-700"
+                  : "border-transparent text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* TAB CONTENT: 1. RINGKASAN (OVERVIEW) */}
