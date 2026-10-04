@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Home, Lock, Eye, EyeOff, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Lock, Eye, EyeOff, AlertCircle, CheckCircle2 } from 'lucide-react';
 import api from '../services/api.js';
+import BrandLogo from '../components/BrandLogo.jsx';
 
 export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
@@ -55,9 +56,7 @@ export default function ResetPasswordPage() {
         {/* Brand Header */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 font-heading font-extrabold text-2xl text-slate-900 mb-2">
-            <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-600/20">
-              <Home className="w-5 h-5" />
-            </div>
+            <BrandLogo className="w-12 h-12" />
             <span>Kos<span className="text-emerald-600">Finder</span></span>
           </Link>
           <h2 className="text-2xl font-bold text-slate-900 font-heading">Atur Ulang Kata Sandi</h2>
