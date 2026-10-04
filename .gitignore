@@ -32,3 +32,7 @@ Thumbs.db
 
 # Arsip development lama (tidak ikut ke repo)
 legacy-v0.1/
+
+# Folder kerja generator gambar (sumber mentah PNG ~8,5 MB). Hasil yang dipakai
+# aplikasi sudah masuk ke client/public/ — yang ini jangan ikut ke repo.
+vibe_images/

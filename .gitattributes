@@ -1,0 +1,14 @@
+# Normalisasi baris akhir: repo disimpan dengan LF, jadi mesin Windows dan
+# Linux tidak saling menghasilkan diff seluruh-file. Tanpa ini, satu suntingan
+# kecil di Windows bisa menampilkan ratusan baris berubah.
+* text=auto eol=lf
+
+# Jangan pernah normalisasi biner — merusak gambar dan font.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
