@@ -87,6 +87,8 @@ model User {
   isVerified    Boolean   @default(false)
   emailVerified Boolean   @default(false)
   avatar        String?
+  // Subjek Google untuk login via Google Identity Services; null = akun lokal
+  googleId      String?   @unique
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

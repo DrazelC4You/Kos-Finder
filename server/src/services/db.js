@@ -2076,6 +2076,35 @@ export const db = {
     return await memoryStore.findUserById(id);
   },
 
+  // Login Google: cari akun lewat subjek (googleId) yang sudah pernah ditautkan
+  async findUserByGoogleId(googleId) {
+    const { isPostgres } = await getDatabaseStatus();
+    if (isPostgres) {
+      return await prisma.user.findUnique({
+        where: { googleId },
+        include: { profile: true }
+      });
+    }
+    return memoryStore.users.find((u) => u.googleId === googleId) || null;
+  },
+
+  // Tautkan googleId ke akun lama. Hanya dipanggil untuk email yang Google
+  // konfirmasi sudah terverifikasi, supaya nobody bisa menaungi akun orang lain.
+  async linkGoogleId(userId, googleId) {
+    const { isPostgres } = await getDatabaseStatus();
+    if (isPostgres) {
+      return await prisma.user.update({
+        where: { id: userId },
+        data: { googleId },
+        include: { profile: true }
+      });
+    }
+    const user = memoryStore.users.find((u) => u.id === userId);
+    if (!user) return null;
+    user.googleId = googleId;
+    return user;
+  },
+
   async createUser(userData) {
     const { isPostgres } = await getDatabaseStatus();
     if (isPostgres) {

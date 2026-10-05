@@ -125,8 +125,17 @@ cd client && npm run generate:map   # bangkitkan ulang src/data/indonesiaMap.js 
 
 Lihat [.env.example](.env.example) untuk daftar lengkap. Ringkasan:
 
-- **Server**: `PORT`, `NODE_ENV`, `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `CORS_ORIGIN`, `CLIENT_URL`, `RATE_LIMIT_MAX`, `STORAGE_DRIVER`, `UPLOAD_DIR`, `UPLOAD_MAX_SIZE`, `PUBLIC_BASE_URL`, `SMTP_HOST/PORT/USER/PASS`, `MAIL_FROM`
-- **Client**: `VITE_MAP_TILE_URL`, `VITE_MAP_TILE_ATTRIBUTION`, `VITE_SUPPORT_EMAIL`, `VITE_TURNSTILE_SITE_KEY`. Client selalu memanggil `/api` pada origin yang sama (proxy Vite di dev, static + reverse proxy di prod) — `VITE_API_BASE_URL` di `.env.example` memang tidak dibaca kode.
+- **Server**: `PORT`, `NODE_ENV`, `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `CORS_ORIGIN`, `CLIENT_URL`, `RATE_LIMIT_MAX`, `STORAGE_DRIVER`, `UPLOAD_DIR`, `UPLOAD_MAX_SIZE`, `PUBLIC_BASE_URL`, `SMTP_HOST/PORT/USER/PASS`, `MAIL_FROM`, `GOOGLE_CLIENT_ID`
+- **Client**: `VITE_MAP_TILE_URL`, `VITE_MAP_TILE_ATTRIBUTION`, `VITE_SUPPORT_EMAIL`, `VITE_TURNSTILE_SITE_KEY`, `VITE_GOOGLE_CLIENT_ID`. Client selalu memanggil `/api` pada origin yang sama (proxy Vite di dev, static + reverse proxy di prod) — `VITE_API_BASE_URL` di `.env.example` memang tidak dibaca kode.
+
+### Login Google (opsional)
+
+1. Google Cloud Console → **APIs & Services → Credentials** → *Create Credentials* → **OAuth client ID** → tipe **Web application**.
+2. Isi **Authorized JavaScript origins**: `http://localhost:5173` untuk dev, plus domain produksi nanti. Aliran Google Identity Services memakai ID token, jadi **tidak perlu redirect URI**.
+3. Salin client ID ke `GOOGLE_CLIENT_ID` di `server/.env` **dan** `VITE_GOOGLE_CLIENT_ID` di `client/.env` — nilainya sama.
+4. Restart server dan dev server client. Tanpa kedua variabel itu tombol Google tidak dirender dan `POST /api/auth/google` menjawab 503.
+
+Aturan akun: email yang terverifikasi Google sudah terdaftar → akun lama ditautkan (role tidak berubah); belum terdaftar → dibuat akun TENANT baru. Password akun Google berupa hash acak, jadi login dengan password biasa tidak bisa dipakai pada akun tersebut.
 
 ## Deployment
 

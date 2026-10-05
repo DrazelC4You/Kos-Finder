@@ -1,5 +1,7 @@
 import bcrypt from 'bcryptjs';
+import { randomBytes } from 'node:crypto';
 import db from '../services/db.js';
+import { googleAuth } from '../services/googleAuth.js';
 import { signToken } from '../utils/jwt.js';
 import { sendPasswordResetEmail, sendVerificationEmail } from '../services/mailer.js';
 import { successResponse, errorResponse } from '../utils/response.js';
@@ -143,6 +145,69 @@ export const login = async (req, res) => {
   } catch (err) {
     console.error('Login error:', err);
     return errorResponse(res, 'Terjadi kegagalan saat proses login.', 500);
+  }
+};
+
+/**
+ * LOGIN GOOGLE CONTROLLER
+ * POST /api/auth/google
+ * Menerima ID token (credential) dari Google Identity Services. Urutan:
+ * googleId dikenali → login; email terverifikasi Google sudah terdaftar →
+ * tautkan googleId ke akun itu; selain itu → akun TENANT baru.
+ */
+export const loginWithGoogle = async (req, res) => {
+  try {
+    if (!googleAuth.isConfigured()) {
+      return errorResponse(res, 'Login Google belum dikonfigurasi di server ini.', 503);
+    }
+
+    const { credential } = req.body;
+    const payload = await googleAuth.verifyCredential(credential);
+    if (!payload) {
+      return errorResponse(res, 'Kredensial Google tidak valid atau sudah kedaluwarsa. Silakan coba lagi.', 401);
+    }
+
+    const email = payload.email.toLowerCase();
+    let user = await db.findUserByGoogleId(payload.sub);
+
+    if (!user) {
+      const existing = await db.findUserByEmail(email);
+      if (existing) user = (await db.linkGoogleId(existing.id, payload.sub)) || existing;
+    }
+
+    if (!user) {
+      user = await db.createUser({
+        name: (payload.name || email.split('@')[0]).trim(),
+        email,
+        // Akun Google tidak punya password lokal. Hash acak membuat endpoint
+        // login/reset password tidak pernah bisa mengambil alih akun ini.
+        password: await bcrypt.hash(randomBytes(32).toString('hex'), 10),
+        phone: null,
+        role: 'TENANT',
+        isVerified: true,
+        emailVerified: true,
+        googleId: payload.sub,
+        avatar: payload.picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(email)}`,
+        profile: { bio: '', gender: null, occupation: 'Pencari Kos' }
+      });
+    }
+
+    const token = signToken({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role
+    });
+
+    const { password: _, ...safeUser } = user;
+
+    return successResponse(res, {
+      user: safeUser,
+      token
+    }, `Login berhasil! Selamat datang, ${user.name}.`);
+  } catch (err) {
+    console.error('Google login error:', err);
+    return errorResponse(res, 'Terjadi kegagalan saat memproses login Google.', 500);
   }
 };
 

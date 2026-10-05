@@ -21,7 +21,9 @@ app.set('trust proxy', 1);
 // Security HTTP headers. CSP butuh daftar host eksplisit karena default helmet
 // hanya mengizinkan img-src 'self' data: — itu memblokir tile peta, foto
 // fallback, dan avatar. Ganti VITE_MAP_TILE_URL = ganti juga daftar img-src.
-// Turnstile butuh script + frame dari challenges.cloudflare.com.
+// Turnstile butuh script + frame dari challenges.cloudflare.com; tombol login
+// Google butuh accounts.google.com (script gsi/client + iframe popup) dan
+// aset tombolnya di *.gstatic.com.
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
@@ -31,9 +33,11 @@ app.use(helmet({
                 'https://*.tile.openstreetmap.org',
                 'https://images.unsplash.com',
                 'https://api.dicebear.com',
+                'https://*.gstatic.com',
+                'https://lh*.googleusercontent.com',
             ],
-            scriptSrc: ["'self'", 'https://challenges.cloudflare.com'],
-            frameSrc: ['https://challenges.cloudflare.com'],
+            scriptSrc: ["'self'", 'https://challenges.cloudflare.com', 'https://accounts.google.com'],
+            frameSrc: ['https://challenges.cloudflare.com', 'https://accounts.google.com'],
         },
     },
 }));
