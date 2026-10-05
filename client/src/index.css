@@ -203,5 +203,29 @@
       transition: none;
     }
   }
+
+  /* Input auth (FloatingInput): kartu kaca, jadi warna autofill bawaan browser
+     (kuning/biru) merusak tampilannya. Box-shadow inset dipakai karena
+     background-color ditolak browser saat autofill; var ring disertakan supaya
+     focus ring tetap terlihat. Selector +label menangani preview autofill yang
+     belum mengubah :placeholder-shown. */
+  input.auth-input:-webkit-autofill,
+  input.auth-input:-webkit-autofill:hover,
+  input.auth-input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #1e293b;
+    box-shadow:
+      inset 0 0 0 40rem rgba(255, 255, 255, 0.62),
+      var(--tw-ring-offset-shadow, 0 0 #0000),
+      var(--tw-ring-shadow, 0 0 #0000);
+    transition: background-color 9999s ease-out;
+  }
+  input.auth-input:-webkit-autofill + label {
+    top: 0.5rem;
+    transform: none;
+    font-size: 11px;
+  }
+  input.auth-input:-webkit-autofill:focus + label {
+    color: #047857;
+  }
 }
 

@@ -48,6 +48,20 @@ export const AuthProvider = ({ children }) => {
     throw new Error(res.data.message || 'Login gagal');
   };
 
+  // Login dengan ID token dari Google Identity Services
+  const loginWithGoogle = async (credential) => {
+    const res = await api.post('/auth/google', { credential });
+    if (res.data.success) {
+      const { user: userData, token: jwtToken } = res.data.data;
+      setToken(jwtToken);
+      setUser(userData);
+      localStorage.setItem('kosfinder_token', jwtToken);
+      localStorage.setItem('kosfinder_user', JSON.stringify(userData));
+      return userData;
+    }
+    throw new Error(res.data.message || 'Login Google gagal');
+  };
+
   // Register handler
   const register = async (formData) => {
     const res = await api.post('/auth/register', formData);
@@ -85,6 +99,7 @@ export const AuthProvider = ({ children }) => {
     token,
     loading,
     login,
+    loginWithGoogle,
     register,
     logout,
     updateUser,

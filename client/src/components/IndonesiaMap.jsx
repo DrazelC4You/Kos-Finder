@@ -9,6 +9,10 @@
  *  - connections: [{ from, to, curvature? }]   (from/to = name lokasi)
  *  - lineColor: warna marker & koneksi (default emerald-500)
  *  - showLabels: tampilkan nama kota (desktop saja; mobile otomatis disembunyikan)
+ *  - responsiveDots: true (default) = dot, marker & ketebalan menyusut mengikuti
+ *    lebar VIEWPORT — untuk pemakaian full-bleed seperti hero beranda. false =
+ *    ukuran natural terhadap viewBox, untuk pemakaian di kolom sempit (latar
+ *    auth) yang kalau ikut viewport jadi terlalu tipis.
  *  - markerOpacity: opasitas marker kota (default 0.92; turunkan untuk pemakaian sebagai latar)
  *  - animationDuration: detik animasi draw-in koneksi
  *  - loop: ulangi animasi koneksi
@@ -136,8 +140,9 @@ function useIsQuiet() {
   return isQuiet;
 }
 
-// Kurva kuadratik melengkung ke utara (seperti arc penerbangan)
-function arcPath(a, b, curvature = 0.25) {
+// Kurva kuadratik melengkung ke utara (seperti arc penerbangan). Diekspor agar
+// artwork lain (globe orthographic halaman auth) memakai kurva yang sama.
+export function arcPath(a, b, curvature = 0.25) {
   const mx = (a.x + b.x) / 2;
   const my = (a.y + b.y) / 2;
   const dx = b.x - a.x;
@@ -160,6 +165,7 @@ export default function IndonesiaMap({
   connections = [],
   lineColor = '#10b981',
   showLabels = true,
+  responsiveDots = true,
   markerOpacity = 0.92,
   animationDuration = 3,
   loop = true,
@@ -168,7 +174,8 @@ export default function IndonesiaMap({
   const reducedMotion = useReducedMotion();
   const isMobile = useIsMobile();
   const isQuiet = useIsQuiet();
-  const dotScale = useDotScale();
+  const viewportDotScale = useDotScale();
+  const dotScale = responsiveDots ? viewportDotScale : 1;
 
   // Pada mobile: pilih 4 kota kunci sepanjang Jawa–Bali agar seimbang
   const activeLocations = useMemo(() => {

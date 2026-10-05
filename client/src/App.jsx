@@ -508,10 +508,14 @@ function NotFound() {
 }
 
 export default function App() {
+  // Halaman auth tampil full-screen tanpa chrome aplikasi (navbar + footer).
+  const { pathname } = useLocation();
+  const isBare = pathname === '/login' || pathname === '/register';
+
   return (
     <AuthProvider>
-      <div className="min-h-screen flex flex-col bg-slate-50">
-        <Navbar />
+      <div className={`min-h-screen flex flex-col ${isBare ? 'bg-white' : 'bg-slate-50'}`}>
+        {!isBare && <Navbar />}
         <main className="flex-1">
           <RouteErrorBoundary>
             <Suspense fallback={<RouteFallback />}>
@@ -538,6 +542,7 @@ export default function App() {
             </Suspense>
           </RouteErrorBoundary>
         </main>
+        {!isBare && (
         <footer className="bg-white border-t border-slate-200 pt-12 pb-28 lg:pb-10">
           <div className="max-w-7xl mx-auto px-4">
             <div className="grid grid-cols-2 gap-x-6 gap-y-9 pb-10 sm:grid-cols-12">
@@ -588,6 +593,7 @@ export default function App() {
             </div>
           </div>
         </footer>
+        )}
       </div>
     </AuthProvider>
   );

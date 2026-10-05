@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import BrandLogo from '../components/BrandLogo.jsx';
-import { Lock, Mail, User, Phone, Eye, EyeOff, AlertCircle, Building, SearchCheck } from 'lucide-react';
+import AuthShell from '../components/auth/AuthShell.jsx';
+import FloatingInput from '../components/auth/FloatingInput.jsx';
+import { Lock, Mail, User, Phone, Eye, EyeOff, AlertCircle, Building, SearchCheck, ArrowRight } from 'lucide-react';
 
 export default function RegisterPage() {
   const [searchParams] = useSearchParams();
@@ -94,182 +95,149 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
-        {/* Brand Header */}
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-2 font-heading font-extrabold text-2xl text-slate-900 mb-2">
-            <BrandLogo className="w-12 h-12" />
-            <span>Kos<span className="text-emerald-600">Finder</span></span>
-          </Link>
-          <h2 className="text-2xl font-bold text-slate-900 font-heading">Daftar Akun Baru</h2>
-          <p className="text-sm text-slate-500 mt-1">Gabung bersama ribuan pencari & pemilik kos</p>
-        </div>
+    <AuthShell>
+      <div className="mb-6 text-center lg:text-left">
+        <h2 className="font-heading text-2xl font-bold text-slate-900">Daftar Akun Baru</h2>
+        <p className="mt-1 text-sm text-slate-600">Gabung bersama ribuan pencari & pemilik kos</p>
+      </div>
 
-        {/* Card Box */}
-        <div className="bg-white rounded-2xl p-7 shadow-sm border border-slate-200">
-          {error && (
-            <div className="mb-5 flex items-start gap-2.5 p-3.5 rounded-xl bg-red-50 text-red-700 text-sm border border-red-200">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-600" />
-              <span>{error}</span>
+      <div className="rounded-3xl border border-slate-900/[0.06] bg-white/[0.38] p-7 shadow-[0_12px_40px_rgba(15,23,42,0.10)] ring-1 ring-white/60 backdrop-blur-2xl backdrop-saturate-150">
+        {error && (
+          <div className="mb-5 flex items-start gap-2.5 rounded-xl border border-red-200/70 bg-red-50/80 p-3.5 text-sm text-red-700 backdrop-blur-sm">
+            <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-600" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Role Switcher Tabs */}
+          <div>
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-700">
+              Daftar Sebagai
+            </label>
+            <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-900/[0.04] p-1">
+              <button
+                type="button"
+                onClick={() => setRole('TENANT')}
+                className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition-all ${
+                  role === 'TENANT'
+                    ? 'bg-white text-emerald-700 shadow-sm ring-1 ring-slate-900/[0.04]'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <SearchCheck className="h-4 w-4" />
+                <span>Pencari Kos</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole('OWNER')}
+                className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition-all ${
+                  role === 'OWNER'
+                    ? 'bg-white text-emerald-700 shadow-sm ring-1 ring-slate-900/[0.04]'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <Building className="h-4 w-4" />
+                <span>Pemilik Kos</span>
+              </button>
+            </div>
+          </div>
+
+          <FloatingInput
+            id="register-name"
+            label="Nama Lengkap"
+            icon={User}
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            autoComplete="name"
+          />
+
+          <FloatingInput
+            id="register-email"
+            label="Alamat Email"
+            icon={Mail}
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoComplete="email"
+          />
+
+          <FloatingInput
+            id="register-phone"
+            label="Nomor WhatsApp / HP"
+            icon={Phone}
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            autoComplete="tel"
+            inputMode="tel"
+          />
+
+          <FloatingInput
+            id="register-password"
+            label="Kata Sandi (Min. 6 Karakter)"
+            icon={Lock}
+            type={showPassword ? 'text' : 'password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="new-password"
+            rightSlot={
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+                className="text-slate-400 transition-colors hover:text-slate-600"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            }
+          />
+
+          <FloatingInput
+            id="register-confirm-password"
+            label="Konfirmasi Kata Sandi"
+            icon={Lock}
+            type={showPassword ? 'text' : 'password'}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            autoComplete="new-password"
+          />
+
+          {/* Cloudflare Turnstile Captcha */}
+          {turnstileSiteKey && (
+            <div className="flex justify-center pt-1">
+              <div ref={turnstileContainerRef}></div>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Role Switcher Tabs */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
-                Daftar Sebagai
-              </label>
-              <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
-                <button
-                  type="button"
-                  onClick={() => setRole('TENANT')}
-                  className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
-                    role === 'TENANT'
-                      ? 'bg-white text-emerald-700 shadow-sm'
-                      : 'text-slate-500 hover:text-slate-800'
-                  }`}
-                >
-                  <SearchCheck className="w-4 h-4" />
-                  <span>Pencari Kos</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRole('OWNER')}
-                  className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
-                    role === 'OWNER'
-                      ? 'bg-white text-emerald-700 shadow-sm'
-                      : 'text-slate-500 hover:text-slate-800'
-                  }`}
-                >
-                  <Building className="w-4 h-4" />
-                  <span>Pemilik Kos</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Nama Lengkap */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                Nama Lengkap
-              </label>
-              <div className="relative">
-                <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Nama lengkap Anda"
-                  className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                />
-              </div>
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                Alamat Email
-              </label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="nama@email.com"
-                  className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                />
-              </div>
-            </div>
-
-            {/* No WhatsApp / Telepon */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                Nomor WhatsApp / HP
-              </label>
-              <div className="relative">
-                <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="081234567890"
-                  className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                />
-              </div>
-            </div>
-
-            {/* Password */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                Kata Sandi (Min. 6 Karakter)
-              </label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full pl-10 pr-10 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            {/* Konfirmasi Password */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                Konfirmasi Kata Sandi
-              </label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                />
-              </div>
-            </div>
-
-            {/* Cloudflare Turnstile Captcha */}
-            {turnstileSiteKey && (
-              <div className="flex justify-center pt-1">
-                <div ref={turnstileContainerRef}></div>
-              </div>
+          <button
+            type="submit"
+            disabled={loading || (turnstileSiteKey && !cfToken)}
+            className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-600/25 transition-all hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading ? (
+              'Mendaftarkan Akun...'
+            ) : (
+              <>
+                Daftar Sekarang
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </>
             )}
-
-            <button
-              type="submit"
-              disabled={loading || (turnstileSiteKey && !cfToken)}
-              className="w-full mt-2 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-xl transition-all shadow-md shadow-emerald-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Mendaftarkan Akun...' : 'Daftar Sekarang'}
-            </button>
-          </form>
-        </div>
-
-        {/* Footer Link */}
-        <p className="text-center text-xs text-slate-500 mt-6">
-          Sudah memiliki akun?{' '}
-          <Link to="/login" className="font-semibold text-emerald-600 hover:underline">
-            Masuk di sini
-          </Link>
-        </p>
+          </button>
+        </form>
       </div>
-    </div>
+
+      <p className="mt-6 text-center text-xs text-slate-600">
+        Sudah memiliki akun?{' '}
+        <Link to="/login" className="font-semibold text-emerald-700 hover:text-emerald-800 hover:underline">
+          Masuk di sini
+        </Link>
+      </p>
+    </AuthShell>
   );
 }
