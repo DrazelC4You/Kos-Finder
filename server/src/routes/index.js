@@ -34,7 +34,7 @@ router.get('/health', async (req, res) => {
     if (failing) {
         return errorResponse(res, 'API hidup, tetapi PostgreSQL tidak terjangkau', 503, data);
     }
-    return successResponse(res, data, 'KosFinder API Server Berjalan Normal');
+    return successResponse(res, data, 'Singgah API Server Berjalan Normal');
 });
 
 // Database status endpoint
@@ -46,7 +46,7 @@ router.get('/database/status', async (req, res) => {
         isConnectedToPostgres: isPostgres,
         mode: isPostgres ? 'PostgreSQL Active Connection' : 'Local Fallback Store Active (Development)',
         seedReady: true
-    }, 'Status Database KosFinder');
+    }, 'Status Database Singgah');
 });
 
 // Authentication routes

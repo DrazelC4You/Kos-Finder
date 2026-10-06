@@ -63,12 +63,12 @@ export default function AboutPage() {
       {/* ── Hero ──────────────────────────────────────────────────────────────── */}
       <section className="bg-white border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-4 py-16 sm:py-20 lg:py-24">
-          <Kicker>Tentang KosFinder</Kicker>
+          <Kicker>Tentang Singgah</Kicker>
           <h1 className="font-sans text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-[1.15] text-balance text-slate-900 max-w-[22ch] mb-6">
             Mempertemukan Pencari Kos dan Pemilik Properti yang Tepat
           </h1>
           <p className="text-base sm:text-lg text-slate-500 leading-relaxed max-w-2xl">
-            KosFinder adalah platform pencarian dan pengelolaan kos yang menghubungkan pencari hunian
+            Singgah adalah platform pencarian dan pengelolaan kos yang menghubungkan pencari hunian
             dengan pemilik properti terverifikasi — mulai dari pencarian, chat, pengajuan sewa,
             hingga ulasan penghuni, semuanya dalam satu aplikasi.
           </p>
@@ -89,7 +89,7 @@ export default function AboutPage() {
               propertinya secara rapi dan mengelola okupansi kamar.
             </p>
             <p className="text-base text-slate-600 leading-relaxed mb-8">
-              KosFinder hadir untuk menyelesaikan kedua sisi masalah tersebut. Pencari kos mendapatkan
+              Singgah hadir untuk menyelesaikan kedua sisi masalah tersebut. Pencari kos mendapatkan
               listing terverifikasi lengkap dengan fasilitas, harga, peta lokasi, dan ulasan penghuni.
               Pemilik kos mendapatkan dasbor pengelolaan properti, kamar, booking, dan keuangan
               dalam satu tempat.
@@ -138,7 +138,7 @@ export default function AboutPage() {
         <div className="max-w-6xl mx-auto px-4 py-16 sm:py-20">
           <Kicker>Alur Penyewa</Kicker>
           <h2 className="font-sans text-2xl sm:text-3xl font-bold tracking-tight text-balance text-slate-900 mb-10">
-            Bagaimana KosFinder Bekerja
+            Bagaimana Singgah Bekerja
           </h2>
           <ol className="grid md:grid-cols-3 gap-x-10 gap-y-9">
             {STEPS.map((s) => (

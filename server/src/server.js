@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 5000;
 
 const server = app.listen(PORT, async () => {
     console.log(`=========================================`);
-    console.log(`🚀 KosFinder Server berjalan di port ${PORT}`);
+    console.log(`🚀 Singgah Server berjalan di port ${PORT}`);
     console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`📡 Health Check: http://localhost:${PORT}/api/health`);
     console.log(`=========================================`);

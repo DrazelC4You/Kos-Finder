@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 @layer base {
-  /* shadcn semantic tokens, mapped to the KosFinder slate + emerald palette */
+  /* shadcn semantic tokens, mapped to the Singgah slate + emerald palette */
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 47.4% 11.2%; /* slate-900 */

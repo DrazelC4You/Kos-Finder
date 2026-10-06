@@ -76,7 +76,7 @@ const ROLE_MENU = {
 
 const EXPLORE_ROWS = [
   { to: '/untuk-pemilik', label: 'Untuk Pemilik', icon: Building },
-  { to: '/tentang', label: 'Tentang KosFinder', icon: FileText }
+  { to: '/tentang', label: 'Tentang Singgah', icon: FileText }
 ];
 
 function Navbar() {
@@ -167,7 +167,7 @@ function Navbar() {
         {/* Brand Logo */}
         <Link to="/" className="flex items-center gap-2 font-heading font-extrabold text-xl text-slate-900">
           <BrandLogo className="w-10 h-10" />
-          <span>Kos<span className="text-emerald-600">Finder</span></span>
+          <span>Singgah</span>
         </Link>
 
         {/* Navigation Links — lg ke atas. whitespace-nowrap penting: tanpa itu bar
@@ -550,7 +550,7 @@ export default function App() {
                 <Link to="/" className="inline-flex items-center gap-2">
                   <BrandLogo className="h-9 w-9" />
                   <span className="font-heading font-extrabold text-base text-slate-900">
-                    Kos<span className="text-emerald-600">Finder</span>
+                    Singgah
                   </span>
                 </Link>
                 <p className="mt-3 max-w-sm text-sm leading-relaxed text-slate-500">
@@ -571,7 +571,7 @@ export default function App() {
               <div className="sm:col-span-3">
                 <p className="text-xs font-semibold text-slate-900 mb-3">Bantuan</p>
                 <ul className="space-y-2 text-sm">
-                  <li><Link to="/tentang" className="text-slate-500 hover:text-emerald-700 transition-colors">Tentang KosFinder</Link></li>
+                  <li><Link to="/tentang" className="text-slate-500 hover:text-emerald-700 transition-colors">Tentang Singgah</Link></li>
                   <li><Link to="/login" className="text-slate-500 hover:text-emerald-700 transition-colors">Masuk</Link></li>
                   {SUPPORT_EMAIL && (
                     <li>
@@ -588,7 +588,7 @@ export default function App() {
             </div>
 
             <div className="flex flex-col gap-2 border-t border-slate-100 pt-6 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
-              <p>© {new Date().getFullYear()} KosFinder. Seluruh hak cipta dilindungi.</p>
+              <p>© {new Date().getFullYear()} Singgah. Seluruh hak cipta dilindungi.</p>
               <p>Harga dan ketersediaan kamar ditampilkan apa adanya dari pemilik properti.</p>
             </div>
           </div>

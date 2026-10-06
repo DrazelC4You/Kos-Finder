@@ -10,7 +10,7 @@ const api = axios.create({
 // Interceptor Request: Sisipkan Bearer Token otomatis jika ada
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('kosfinder_token');
+    const token = localStorage.getItem('singgah_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -25,8 +25,8 @@ api.interceptors.response.use(
   (error) => {
     // Jika 401 (Unauthorized) dan bukan saat mencoba login, logout client
     if (error.response?.status === 401 && !error.config.url.includes('/auth/login')) {
-      localStorage.removeItem('kosfinder_token');
-      localStorage.removeItem('kosfinder_user');
+      localStorage.removeItem('singgah_token');
+      localStorage.removeItem('singgah_user');
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
       }

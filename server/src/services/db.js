@@ -1762,7 +1762,7 @@ class MemoryDataStore {
         pihakPertama: {
           id: owner?.id || kos.ownerId,
           nama: owner?.name || 'Pemilik Kos',
-          email: owner?.email || 'owner@kosfinder.com',
+          email: owner?.email || 'owner@singgah.test',
           phone: owner?.phone || '-',
           alamat: owner?.profile?.address || kos.alamat,
           role: 'PEMILIK / PENGELOLA KOS'
@@ -1770,7 +1770,7 @@ class MemoryDataStore {
         pihakKedua: {
           id: tenant?.id || booking.tenantId,
           nama: tenant?.name || 'Penyewa',
-          email: tenant?.email || 'tenant@kosfinder.com',
+          email: tenant?.email || 'tenant@singgah.test',
           phone: tenant?.phone || '-',
           alamat: tenant?.profile?.address || 'Sesuai KTP / Identitas Terdaftar',
           occupation: tenant?.profile?.occupation || 'Mahasiswa / Pekerja',
@@ -1793,7 +1793,7 @@ class MemoryDataStore {
           },
           {
             pasal: 'Pasal 2: Jangka Waktu Sewa',
-            isi: `Sewa berlaku selama ${durationMonths} bulan terhitung sejak tanggal mulai hingga tanggal selesai yang disepakati. Perpanjangan masa sewa wajib diajukan selambat-lambatnya 14 (empat belas) hari sebelum masa sewa berakhir melalui platform KosFinder.`
+            isi: `Sewa berlaku selama ${durationMonths} bulan terhitung sejak tanggal mulai hingga tanggal selesai yang disepakati. Perpanjangan masa sewa wajib diajukan selambat-lambatnya 14 (empat belas) hari sebelum masa sewa berakhir melalui platform Singgah.`
           },
           {
             pasal: 'Pasal 3: Biaya Sewa dan Ketentuan Pembayaran',
@@ -2005,7 +2005,7 @@ class MemoryDataStore {
           total: subtotal
         },
         {
-          deskripsi: 'Biaya Administrasi & Layanan Aplikasi Platform KosFinder',
+          deskripsi: 'Biaya Administrasi & Layanan Aplikasi Platform Singgah',
           durasi: '1x Transaksi',
           hargaSatuan: 0,
           total: 0

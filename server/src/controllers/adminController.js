@@ -129,7 +129,7 @@ export const verifyListing = async (req, res) => {
       newStatus = 'ACTIVE';
       isVerified = true;
       notifTitle = '✅ Listing Kos Diverifikasi';
-      notifMsg = `Listing kos "${kos.nama}" Anda telah diverifikasi dan sekarang aktif di platform KosFinder.`;
+      notifMsg = `Listing kos "${kos.nama}" Anda telah diverifikasi dan sekarang aktif di platform Singgah.`;
       notifType = 'LISTING_VERIFIED';
     } else if (action === 'reject') {
       newStatus = 'REJECTED';

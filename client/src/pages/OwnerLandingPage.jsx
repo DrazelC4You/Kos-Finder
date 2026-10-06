@@ -80,7 +80,7 @@ export default function OwnerLandingPage() {
         <div className="max-w-6xl mx-auto px-4 py-16 sm:py-20 lg:py-24">
           <Kicker>Untuk Pemilik Properti</Kicker>
           <h1 className="font-sans text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-[1.15] text-balance text-slate-900 max-w-[20ch] mb-6">
-            Kelola Kos Lebih Mudah dengan KosFinder.
+            Kelola Kos Lebih Mudah dengan Singgah.
           </h1>
           <p className="text-base sm:text-lg text-slate-500 leading-relaxed max-w-2xl mb-9">
             Pasarkan properti Anda ke pencari kos di seluruh Indonesia, kelola kamar dan booking dalam
@@ -154,7 +154,7 @@ export default function OwnerLandingPage() {
             Properti Anda, Penghuni Baru Anda
           </h2>
           <p className="text-base sm:text-lg text-slate-500 leading-relaxed max-w-xl mb-8">
-            Daftarkan properti kos Anda di KosFinder dan biarkan kamar kosong Anda ditemukan calon penghuni yang sedang mencari.
+            Daftarkan properti kos Anda di Singgah dan biarkan kamar kosong Anda ditemukan calon penghuni yang sedang mencari.
           </p>
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5">
             <Link
@@ -168,7 +168,7 @@ export default function OwnerLandingPage() {
               to="/tentang"
               className="group inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900 whitespace-nowrap focus-visible:outline-none focus-visible:underline"
             >
-              <span className="font-medium">Pelajari cara KosFinder bekerja</span>
+              <span className="font-medium">Pelajari cara Singgah bekerja</span>
               <ArrowRight className="w-3.5 h-3.5 flex-shrink-0 group-hover:translate-x-0.5 transition-transform duration-150" />
             </Link>
           </div>

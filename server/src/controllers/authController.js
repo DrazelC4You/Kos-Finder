@@ -91,7 +91,7 @@ export const register = async (req, res) => {
 
     const successMessage = selectedRole === 'OWNER'
       ? 'Registrasi berhasil! Silakan cek email Anda dan klik tautan verifikasi sebelum mulai menambahkan kos.'
-      : 'Registrasi berhasil! Selamat datang di KosFinder sebagai Pencari Kos.';
+      : 'Registrasi berhasil! Selamat datang di Singgah sebagai Pencari Kos.';
 
     return successResponse(res, {
       user: safeUser,
@@ -353,14 +353,14 @@ export const getDemoAccounts = (req, res) => {
     {
       role: 'OWNER',
       name: 'Bapak Anton Harmono',
-      email: 'anton@kosfinder.com',
+      email: 'anton@singgah.test',
       password: 'Password123!',
       desc: 'Owner dengan 3 kos aktif di Purwokerto & Sokaraja'
     },
     {
       role: 'OWNER',
       name: 'Hj. Siti Aminah',
-      email: 'siti@kosfinder.com',
+      email: 'siti@singgah.test',
       password: 'Password123!',
       desc: 'Owner Kost Melati Putri Eksklusif'
     },
@@ -373,8 +373,8 @@ export const getDemoAccounts = (req, res) => {
     },
     {
       role: 'ADMIN',
-      name: 'Admin KosFinder',
-      email: 'admin@kosfinder.com',
+      name: 'Admin Singgah',
+      email: 'admin@singgah.test',
       password: 'Password123!',
       desc: 'Platform Administrator & Moderator'
     }

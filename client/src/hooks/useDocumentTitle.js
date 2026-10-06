@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-const APP_NAME = 'KosFinder';
+const APP_NAME = 'Singgah';
 
 export default function useDocumentTitle(title) {
   useEffect(() => {

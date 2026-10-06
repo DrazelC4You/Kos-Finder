@@ -1,5 +1,5 @@
 /**
- * Geolocation & Distance Calculation Utility for KosFinder
+ * Geolocation & Distance Calculation Utility for Singgah
  * Murni algoritma: Haversine, format jarak, dan permintaan lokasi browser.
  * Katalog kampus ada di src/data/campuses.js.
  */

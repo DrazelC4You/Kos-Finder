@@ -1,7 +1,7 @@
 {
-  "name": "kosfinder-server",
+  "name": "singgah-server",
   "version": "1.0.0",
-  "description": "Backend API untuk KosFinder Platform",
+  "description": "Backend API untuk Singgah Platform",
   "main": "src/server.js",
   "type": "module",
   "engines": {

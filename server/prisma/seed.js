@@ -4,7 +4,7 @@ import { seedUsers, seedKos, seedBookings, seedReviews } from './seedData.js';
 const prisma = new PrismaClient();
 
 export async function runSeed() {
-  console.log('🌱 Memulai proses Seeding database KosFinder...');
+  console.log('🌱 Memulai proses Seeding database Singgah...');
 
   // 1. Bersihkan database terlebih dahulu
   console.log('🧹 Membersihkan tabel lama...');

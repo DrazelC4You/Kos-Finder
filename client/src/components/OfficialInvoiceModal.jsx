@@ -90,7 +90,7 @@ export default function OfficialInvoiceModal({ bookingId, onClose }) {
                 <div>
                   <div className="flex items-center gap-1.5 text-emerald-700 font-extrabold text-lg tracking-tight">
                     <Building2 className="w-5 h-5" />
-                    <span>KosFinder Indonesia</span>
+                    <span>Singgah Indonesia</span>
                   </div>
                   <p className="text-[11px] text-slate-500">
                     Sistem Pembayaran & Administrasi Hunian Kos Nasional
@@ -196,7 +196,7 @@ export default function OfficialInvoiceModal({ bookingId, onClose }) {
                   <div className="text-xs">
                     <span className="text-[10px] text-slate-400 font-bold uppercase block">Kode Verifikasi Keaslian</span>
                     <span className="font-mono font-bold text-slate-800 text-[11px]">{invoice.verificationCode}</span>
-                    <p className="text-[10px] text-slate-500">Terverifikasi secara digital oleh KosFinder Database</p>
+                    <p className="text-[10px] text-slate-500">Terverifikasi secara digital oleh Singgah Database</p>
                   </div>
                 </div>
 

@@ -240,7 +240,7 @@ export default function LoginPage() {
             <div className="grid grid-cols-3 gap-2 text-xs">
               <button
                 type="button"
-                onClick={() => fillDemoAccount('anton@kosfinder.com', 'Password123!')}
+                onClick={() => fillDemoAccount('anton@singgah.test', 'Password123!')}
                 className="rounded-lg border border-slate-900/[0.08] bg-white/40 p-2 text-left font-medium text-slate-800 transition-colors hover:bg-white/70"
               >
                 🏠 <strong>Bapak Anton</strong>
@@ -248,7 +248,7 @@ export default function LoginPage() {
               </button>
               <button
                 type="button"
-                onClick={() => fillDemoAccount('siti@kosfinder.com', 'Password123!')}
+                onClick={() => fillDemoAccount('siti@singgah.test', 'Password123!')}
                 className="rounded-lg border border-slate-900/[0.08] bg-white/40 p-2 text-left font-medium text-slate-800 transition-colors hover:bg-white/70"
               >
                 🏠 <strong>Hj. Siti</strong>
@@ -256,7 +256,7 @@ export default function LoginPage() {
               </button>
               <button
                 type="button"
-                onClick={() => fillDemoAccount('admin@kosfinder.com', 'Password123!')}
+                onClick={() => fillDemoAccount('admin@singgah.test', 'Password123!')}
                 className="rounded-lg border border-slate-900/[0.08] bg-white/40 p-2 text-left font-medium text-slate-800 transition-colors hover:bg-white/70"
               >
                 🛡️ <strong>Admin</strong>
@@ -268,7 +268,7 @@ export default function LoginPage() {
       </div>
 
       <p className="mt-6 text-center text-xs text-slate-600">
-        Belum memiliki akun KosFinder?{' '}
+        Belum memiliki akun Singgah?{' '}
         <Link to="/register" className="font-semibold text-emerald-700 hover:text-emerald-800 hover:underline">
           Daftar Sekarang
         </Link>

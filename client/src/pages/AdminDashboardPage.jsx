@@ -718,7 +718,7 @@ export default function AdminDashboardPage() {
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Admin Panel</h1>
             <p className="text-slate-500 text-sm mt-0.5">
-              Kelola pengguna, verifikasi listing, dan moderasi konten platform KosFinder
+              Kelola pengguna, verifikasi listing, dan moderasi konten platform Singgah
             </p>
           </div>
         </div>

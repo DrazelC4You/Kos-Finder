@@ -277,7 +277,7 @@ export default function IndonesiaMap({
           />
         ))}
 
-        {/* Pulau Jawa + Bali: aksen hijau KosFinder, sedikit lebih tegas tapi tetap menyatu */}
+        {/* Pulau Jawa + Bali: aksen hijau Singgah, sedikit lebih tegas tapi tetap menyatu */}
         {JAVA_ROWS.map((d, i) => (
           <path
             key={`java-${i}`}

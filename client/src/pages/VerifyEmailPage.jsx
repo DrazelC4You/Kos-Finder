@@ -46,7 +46,7 @@ export default function VerifyEmailPage() {
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 font-heading font-extrabold text-2xl text-slate-900 mb-2">
             <BrandLogo className="w-12 h-12" />
-            <span>Kos<span className="text-emerald-600">Finder</span></span>
+            <span>Singgah</span>
           </Link>
           <h2 className="text-2xl font-bold text-slate-900 font-heading">Verifikasi Email</h2>
         </div>

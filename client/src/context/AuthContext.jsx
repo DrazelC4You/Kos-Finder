@@ -5,14 +5,14 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('kosfinder_token') || null);
+  const [token, setToken] = useState(localStorage.getItem('singgah_token') || null);
   const [loading, setLoading] = useState(true);
 
   // Inisialisasi: Periksa token dan muat profil user saat aplikasi pertama dimuat
   useEffect(() => {
     const initAuth = async () => {
-      const savedToken = localStorage.getItem('kosfinder_token');
-      const savedUser = localStorage.getItem('kosfinder_user');
+      const savedToken = localStorage.getItem('singgah_token');
+      const savedUser = localStorage.getItem('singgah_user');
 
       if (savedToken && savedUser) {
         try {
@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
           const res = await api.get('/auth/me');
           if (res.data.success) {
             setUser(res.data.data);
-            localStorage.setItem('kosfinder_user', JSON.stringify(res.data.data));
+            localStorage.setItem('singgah_user', JSON.stringify(res.data.data));
           }
         } catch (err) {
           console.error('Sesi token kedaluwarsa:', err);
@@ -41,8 +41,8 @@ export const AuthProvider = ({ children }) => {
       const { user: userData, token: jwtToken } = res.data.data;
       setToken(jwtToken);
       setUser(userData);
-      localStorage.setItem('kosfinder_token', jwtToken);
-      localStorage.setItem('kosfinder_user', JSON.stringify(userData));
+      localStorage.setItem('singgah_token', jwtToken);
+      localStorage.setItem('singgah_user', JSON.stringify(userData));
       return userData;
     }
     throw new Error(res.data.message || 'Login gagal');
@@ -55,8 +55,8 @@ export const AuthProvider = ({ children }) => {
       const { user: userData, token: jwtToken } = res.data.data;
       setToken(jwtToken);
       setUser(userData);
-      localStorage.setItem('kosfinder_token', jwtToken);
-      localStorage.setItem('kosfinder_user', JSON.stringify(userData));
+      localStorage.setItem('singgah_token', jwtToken);
+      localStorage.setItem('singgah_user', JSON.stringify(userData));
       return userData;
     }
     throw new Error(res.data.message || 'Login Google gagal');
@@ -69,8 +69,8 @@ export const AuthProvider = ({ children }) => {
       const { user: userData, token: jwtToken } = res.data.data;
       setToken(jwtToken);
       setUser(userData);
-      localStorage.setItem('kosfinder_token', jwtToken);
-      localStorage.setItem('kosfinder_user', JSON.stringify(userData));
+      localStorage.setItem('singgah_token', jwtToken);
+      localStorage.setItem('singgah_user', JSON.stringify(userData));
       return userData;
     }
     throw new Error(res.data.message || 'Registrasi gagal');
@@ -83,15 +83,15 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setToken(null);
       setUser(null);
-      localStorage.removeItem('kosfinder_token');
-      localStorage.removeItem('kosfinder_user');
+      localStorage.removeItem('singgah_token');
+      localStorage.removeItem('singgah_user');
     }
   };
 
   // Update local user state
   const updateUser = (newUserData) => {
     setUser(newUserData);
-    localStorage.setItem('kosfinder_user', JSON.stringify(newUserData));
+    localStorage.setItem('singgah_user', JSON.stringify(newUserData));
   };
 
   const value = {

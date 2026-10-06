@@ -1,4 +1,4 @@
-# KosFinder — Platform Pencarian & Pengelolaan Kos
+# Singgah — Platform Pencarian & Pengelolaan Kos
 
 Aplikasi full-stack untuk mencari kos (pencari), mengelola properti kos (pemilik), dan memoderasi platform (admin). Dibangun dengan React + Express + PostgreSQL/Prisma dengan fallback penyimpanan in-memory untuk development tanpa database.
 
@@ -91,9 +91,9 @@ Semua akun demo memakai password: **Password123!**
 
 | Peran | Email | Keterangan |
 |---|---|---|
-| ADMIN | admin@kosfinder.com | Akses Admin Panel (verifikasi listing, moderasi) |
-| OWNER | anton@kosfinder.com | Pemilik 7 properti (dasbor pemilik) |
-| OWNER | siti@kosfinder.com | Pemilik 5 properti (kos putri) |
+| ADMIN | admin@singgah.test | Akses Admin Panel (verifikasi listing, moderasi) |
+| OWNER | anton@singgah.test | Pemilik 7 properti (dasbor pemilik) |
+| OWNER | siti@singgah.test | Pemilik 5 properti (kos putri) |
 | TENANT | rian@gmail.com | Pencari kos (punya booking & favorit siap uji) |
 
 ## Fitur Utama

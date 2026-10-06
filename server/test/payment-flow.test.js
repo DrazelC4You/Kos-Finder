@@ -35,7 +35,7 @@ const mkTenant = async (label) => {
 let ownerToken, tenantToken, otherTenantToken, kosId, roomId, bookingId, paymentId;
 
 before(async () => {
-  ownerToken = await login('anton@kosfinder.com');
+  ownerToken = await login('anton@singgah.test');
   const me = await request(app).get('/api/auth/me').set('Authorization', `Bearer ${ownerToken}`);
   const ownerId = me.body.data.id;
 
@@ -133,7 +133,7 @@ test('pemilik melihat pembayaran masuk dan bisa mengonfirmasinya', async () => {
 });
 
 test('owner lain tidak bisa mengonfirmasi pembayaran milik orang lain', async () => {
-  const sitiToken = await login('siti@kosfinder.com');
+  const sitiToken = await login('siti@singgah.test');
   const res = await request(app).patch(`/api/payments/${paymentId}/confirm`)
     .set('Authorization', `Bearer ${sitiToken}`)
     .send({ action: 'confirm' });

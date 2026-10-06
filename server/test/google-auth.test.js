@@ -87,7 +87,7 @@ test('POST /api/auth/google menautkan ke akun email yang sudah ada', async (t) =
 
 test('login password akun biasa tetap jalan setelah perubahan skema', async () => {
   const res = await request(app).post('/api/auth/login').send({
-    email: 'anton@kosfinder.com',
+    email: 'anton@singgah.test',
     password: 'Password123!'
   });
   assert.equal(res.status, 200);

@@ -10,9 +10,9 @@ const { default: app } = await import('../src/app.js');
 // Kredensial demo (sesuai prisma/seedData.js)
 // ---------------------------------------------------------------
 const DEMO = {
-  admin: { email: 'admin@kosfinder.com', password: 'Password123!' },
-  owner: { email: 'anton@kosfinder.com', password: 'Password123!' },
-  owner2: { email: 'siti@kosfinder.com', password: 'Password123!' },
+  admin: { email: 'admin@singgah.test', password: 'Password123!' },
+  owner: { email: 'anton@singgah.test', password: 'Password123!' },
+  owner2: { email: 'siti@singgah.test', password: 'Password123!' },
   tenant: { email: 'rian@gmail.com', password: 'Password123!' }
 };
 

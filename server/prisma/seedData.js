@@ -7,16 +7,16 @@ export const seedUsers = [
   // 1. ADMIN
   {
     id: 'usr-admin-01',
-    email: 'admin@kosfinder.com',
+    email: 'admin@singgah.test',
     password: defaultHashedPassword,
-    name: 'Admin KosFinder',
+    name: 'Admin Singgah',
     phone: '081122334455',
     role: 'ADMIN',
     isVerified: true,
     emailVerified: true,
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     profile: {
-      bio: 'Administrator resmi platform KosFinder',
+      bio: 'Administrator resmi platform Singgah',
       gender: 'Laki-laki',
       occupation: 'Platform Moderator',
       address: 'Jakarta Pusat'
@@ -26,7 +26,7 @@ export const seedUsers = [
   // 2. OWNER 1 (Bapak Anton)
   {
     id: 'usr-owner-01',
-    email: 'anton@kosfinder.com',
+    email: 'anton@singgah.test',
     password: defaultHashedPassword,
     name: 'Bapak Anton Harmono',
     phone: '081234567890',
@@ -45,7 +45,7 @@ export const seedUsers = [
   // 3. OWNER 2 (Ibu Hj. Siti Aminah)
   {
     id: 'usr-owner-02',
-    email: 'siti@kosfinder.com',
+    email: 'siti@singgah.test',
     password: defaultHashedPassword,
     name: 'Hj. Siti Aminah',
     phone: '081377889900',

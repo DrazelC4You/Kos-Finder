@@ -362,8 +362,8 @@ export default function HomePage() {
 
   const faqs = [
     {
-      question: 'Apakah mencari kos di KosFinder dipungut biaya?',
-      answer: 'Tidak sama sekali! KosFinder 100% gratis untuk pencari kos. Anda dapat mencari, melihat detail, dan menghubungi pemilik tanpa biaya perantara.'
+      question: 'Apakah mencari kos di Singgah dipungut biaya?',
+      answer: 'Tidak sama sekali! Singgah 100% gratis untuk pencari kos. Anda dapat mencari, melihat detail, dan menghubungi pemilik tanpa biaya perantara.'
     },
     {
       question: 'Bagaimana cara menghubungi pemilik kos?',
@@ -374,7 +374,7 @@ export default function HomePage() {
       answer: 'Daftar akun baru dengan memilih peran "Pemilik Kos (Owner)". Setelah masuk, Anda dapat langsung mendaftarkan properti dan mengelola ketersediaan kamar.'
     },
     {
-      question: 'Apakah ketersediaan kamar di KosFinder selalu terbarui?',
+      question: 'Apakah ketersediaan kamar di Singgah selalu terbarui?',
       answer: 'Ya, pemilik kos memperbarui status kamar secara berkala dan sistem secara otomatis menghitung jumlah kamar yang siap huni.'
     }
   ];
@@ -741,7 +741,7 @@ export default function HomePage() {
                 Belum ada kos di sekitar lokasi Anda
               </h3>
               <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto mb-6 leading-relaxed">
-                KosFinder saat ini berfokus pada area kampus di Pulau Jawa dan Bali. Anda tetap dapat menjelajahi seluruh area atau melihat rekomendasi kampus favorit kami.
+                Singgah saat ini berfokus pada area kampus di Pulau Jawa dan Bali. Anda tetap dapat menjelajahi seluruh area atau melihat rekomendasi kampus favorit kami.
               </p>
               <div className="flex flex-wrap items-center justify-center gap-3">
                 <button
@@ -836,11 +836,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. KENAPA KOSFINDER? */}
+      {/* 4. KENAPA SINGGAH? */}
       <section className="bg-white py-14 border-y border-slate-200">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 font-heading">Kenapa Memilih KosFinder?</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 font-heading">Kenapa Memilih Singgah?</h2>
             <p className="text-sm text-slate-500 mt-2">Solusi pencarian hunian kos yang terpercaya, aman, dan tanpa biaya perantara.</p>
           </div>
 
@@ -878,11 +878,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 5. CARA KERJA KOSFINDER */}
+      {/* 5. CARA KERJA SINGGAH */}
       <section className="max-w-6xl mx-auto px-4">
         <div className="text-center max-w-2xl mx-auto mb-12">
           <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider block mb-1">Panduan Praktis</span>
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 font-heading">Cara Kerja KosFinder</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 font-heading">Cara Kerja Singgah</h2>
           <p className="text-sm text-slate-500 mt-2">Dapatkan kamar kos impian Anda hanya dalam 4 langkah sederhana</p>
         </div>
 
@@ -923,7 +923,7 @@ export default function HomePage() {
             {/* Paragraf pendukung + CTA */}
             <div className="lg:col-span-5 lg:pt-1">
               <p className="text-base sm:text-lg text-slate-500 leading-relaxed max-w-md">
-                Pasang listing, kelola kamar, dan pantau booking langsung dari KosFinder.
+                Pasang listing, kelola kamar, dan pantau booking langsung dari Singgah.
               </p>
               <div className="mt-8 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-4 sm:gap-5">
                 <Link
@@ -956,7 +956,7 @@ export default function HomePage() {
         contactInfo={SUPPORT_EMAIL ? {
           title: 'Masih ada pertanyaan?',
           description: 'Tim kami siap membantu Anda menemukan kos yang pas.',
-          buttonText: 'Hubungi KosFinder',
+          buttonText: 'Hubungi Singgah',
           href: `mailto:${SUPPORT_EMAIL}`,
         } : undefined}
       />

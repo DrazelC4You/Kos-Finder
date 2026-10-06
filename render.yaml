@@ -1,11 +1,11 @@
-# Render Blueprint — deploy KosFinder sebagai single web service + PostgreSQL.
+# Render Blueprint — deploy Singgah sebagai single web service + PostgreSQL.
 # Cara pakai: Dashboard Render → New → Blueprint → hubungkan repo ini.
 # Setelah deploy, isi 3 env var yang sync: false (CLIENT_URL, CORS_ORIGIN,
 # TURNSTILE_SECRET_KEY) sesuai URL aplikasi dan dashboard Cloudflare.
 
 services:
   - type: web
-    name: kosfinder
+    name: singgah
     runtime: node
     # Prisma 5.22 hanya diuji sampai Node 22; tanpa pin ini Render mengambil
     # versi default terbaru dan query engine-nya bisa tidak cocok.
@@ -19,18 +19,18 @@ services:
         value: production
       - key: DATABASE_URL
         fromDatabase:
-          name: kosfinder-db
+          name: singgah-db
           property: connectionString
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_EXPIRES_IN
         value: 7d
-      # Data demo berisi akun admin@kosfinder.com berpassword "Password123!"
+      # Data demo berisi akun admin@singgah.test berpassword "Password123!"
       # (lihat server/prisma/seedData.js). Jangan diaktifkan di produksi.
       - key: SEED_DEMO_DATA
         value: "false"
       - key: CLIENT_URL
-        sync: false # isi dengan URL aplikasi, mis. https://kosfinder.onrender.com
+        sync: false # isi dengan URL aplikasi, mis. https://singgah.onrender.com
       - key: CORS_ORIGIN
         sync: false # sama dengan CLIENT_URL
       - key: TURNSTILE_SECRET_KEY
@@ -49,5 +49,5 @@ services:
         value: uploads
 
 databases:
-  - name: kosfinder-db
+  - name: singgah-db
     plan: free
