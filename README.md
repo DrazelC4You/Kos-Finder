@@ -144,6 +144,15 @@ Aturan akun: email yang terverifikasi Google sudah terdaftar → akun lama ditau
 3. **Client**: `cd client && npm ci && npm run build`, sajikan `client/dist` via hosting statis (Nginx/Vercel/Netlify). Set `VITE_API_BASE_URL` ke URL API publik dan konfigurasi proxy `/uploads` ke server bila storage lokal dipakai.
 4. **Uploads**: untuk produksi multi-instance, ganti `STORAGE_DRIVER` ke provider objek (struktur `storage.js` sudah menyiapkan abstraksinya).
 
+### Vercel (satu proyek, tanpa server sendiri)
+
+Konfigurasi siap pakai ada di [`vercel.json`](vercel.json) + [`api/index.mjs`](api/index.mjs) (Express jalan sebagai serverless function, hasil build React disajikan CDN Vercel):
+
+1. Import repo di vercel.com (login GitHub) — Vercel membaca `vercel.json` otomatis, tidak perlu ubah build settings.
+2. Set **Environment Variables**: `JWT_SECRET` (wajib — string acak panjang). `CORS_ORIGIN`/`CLIENT_URL` opsional (satu origin, CORS tidak dipakai), isi dengan URL deployment bila ingin.
+3. Tanpa `DATABASE_URL`, aplikasi otomatis jalan di mode memory (data seed demo ikut ter-load, reset saat cold start). Untuk data persisten: isi `DATABASE_URL` dari Neon/Supabase gratis, lalu jalankan `npx prisma db push` sekali dari mesin lokal.
+4. Batasan di Vercel: foto yang di-upload tersimpan di `/tmp` (hilang saat cold start); email tanpa `SMTP_*` tercetak di runtime log Vercel; tombol Turnstile/Google tidak dirender bila env `VITE_*` tidak diisi saat build.
+
 ## Known Limitations
 
 - Peta memakai tile OpenStreetMap gratis (tanpa geocoding pencarian alamat); provider berbayar dapat dipasang via `VITE_MAP_TILE_URL`.

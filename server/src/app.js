@@ -88,7 +88,9 @@ app.use('/api', routes);
 // Static frontend (produksi): sajikan hasil build React dari client/dist
 // beserta fallback SPA agar rute sisi-client (/cari, /kos/:id, dll) tetap
 // mengembalikan index.html. Request /api dan /uploads tidak diganggu.
-if (process.env.NODE_ENV === 'production') {
+// Di Vercel, file statis disajikan CDN-nya sendiri (outputDirectory), jadi
+// blok ini hanya aktif untuk hosting satu-service seperti Render.
+if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
     const clientDist = path.resolve(__dirname, '../../client/dist');
     app.use(express.static(clientDist));
     app.get('*', (req, res, next) => {

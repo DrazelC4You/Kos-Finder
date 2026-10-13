@@ -16,7 +16,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
  */
 
 const STORAGE_DRIVER = process.env.STORAGE_DRIVER || 'local';
-const UPLOAD_DIR = process.env.UPLOAD_DIR || 'uploads';
+// Vercel serverless: filesystem read-only kecuali /tmp, dan /tmp tidak
+// persisten antar cold start — foto yang diunggah di sana hanya bertahan
+// sementara. Untuk permanen, pakai cloud storage.
+const UPLOAD_DIR = process.env.UPLOAD_DIR || (process.env.VERCEL ? '/tmp/uploads' : 'uploads');
 const uploadRoot = path.resolve(__dirname, '../../', UPLOAD_DIR);
 
 // Pastikan folder penyimpanan lokal tersedia saat boot

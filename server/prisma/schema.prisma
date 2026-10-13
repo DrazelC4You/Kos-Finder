@@ -5,6 +5,9 @@
 
 generator client {
   provider = "prisma-client-js"
+  // "native" = engine untuk platform build (Windows lokal, Linux Render).
+  // rhel-openssl-3.0.x = runtime serverless Vercel (Amazon Linux 2023).
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
