@@ -1,0 +1,35 @@
+# Yang di-upload Vercel CLI saat `vercel deploy`.
+# Catatan: jika file ini ada, .gitignore TIDAK lagi dipakai oleh CLI,
+# jadi semua pengecualian besar harus ditulis ulang di sini.
+
+# Dependensi (di-install ulang oleh Vercel saat build)
+node_modules/
+**/node_modules/
+
+# Hasil build (dibuat ulang saat build di Vercel)
+client/dist/
+server/dist/
+build/
+
+# Storage lokal & arsip kerja
+server/uploads/
+legacy-v0.1/
+vibe_images/
+*.zip
+
+# Git & editor
+.git/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Secrets (tidak boleh naik ke mana-mana)
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Metadata CLI
+.vercel/
+*.log
