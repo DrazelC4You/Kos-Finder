@@ -9,4 +9,4 @@ Disallow: /register
 Disallow: /verify-email
 Disallow: /reset-password
 
-Sitemap: https://singgah.onrender.com/sitemap.xml
+Sitemap: https://kos-finder-liart.vercel.app/sitemap.xml
